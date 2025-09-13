@@ -40,7 +40,7 @@
 | 4      | 23521381      | Võ Đức Tài             |[HydrogenDrinker](https://github.com/HydrogenDrinker) |23521381@gm.uit.edu.vn   |
 | 5      | 23521816      | Thái Văn Vũ            |[VuHT02](https://github.com/VuHT02)                   |23521816@gm.uit.edu.vn   |
 | 6      | 23520090      | Phạm Bá Bằng           |[Bang3107](https://github.com/Bang3107)               |23520090@gm.uit.edu.vn   |
-| 7      | 23521378      | Thiều Đinh Nam Tài     |[Blackdark](https://github.com/Blackdark)             |23521378@gm.uit.edu.vn   |
+| 7      | 23521378      | Thiều Đinh Nam Tài     |[Blackdarked](https://github.com/Blackdarked)         |23521378@gm.uit.edu.vn   |
 
 
 ## SEMINAR
