@@ -68,7 +68,7 @@ const HeaderSlider = () => {
                   {slide.buttonText2}
                   <Image
                     className="group-hover:translate-x-1 transition"
-                    src="/images/arrow_icon.png"
+                    src="/images/arrow_icon.svg"
                     alt="arrow_icon"
                     width={16}
                     height={16}

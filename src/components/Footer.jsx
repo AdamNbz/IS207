@@ -8,7 +8,7 @@ const Footer = () => {
         <div className="w-4/5">
           <Image
             className="w-28 md:w-32"
-            src="/images/logo.png"
+            src="/images/logo.svg"
             alt="logo"
             width={128} // set width & height đúng với file
             height={128}

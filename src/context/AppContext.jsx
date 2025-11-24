@@ -1,9 +1,11 @@
 'use client'
 import { useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, useState } from "react";
+import productsData from "@/data/product";
 
 // Tạo context
 export const AppContext = createContext();
+
 
 // Hook để dùng context
 export const useAppContext = () => useContext(AppContext);
@@ -20,12 +22,7 @@ export const AppContextProvider = (props) => {
 
   // Lấy dữ liệu sản phẩm (hiện tạm để trống hoặc từ API)
   const fetchProductData = async () => {
-    // Ví dụ tạm để mảng rỗng
-    setProducts([]);
-    // Sau này có thể fetch từ API
-    // const res = await fetch("/api/products");
-    // const data = await res.json();
-    // setProducts(data);
+    setProducts(productsData);
   }
 
   // Lấy dữ liệu user

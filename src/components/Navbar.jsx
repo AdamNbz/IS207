@@ -34,7 +34,7 @@ const Navbar = () => {
           Shop
         </Link>
         <Link href="/about-us" className="hover:text-gray-900 transition">
-          About Us
+          Về Chúng tôi
         </Link>
         <Link href="/" className="hover:text-gray-900 transition">
           Địa chỉ liên hệ
