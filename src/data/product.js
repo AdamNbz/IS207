@@ -21,7 +21,7 @@ const products = [
     price: 499.99,
     offerPrice: 449.99,
     image: [
-      "/images/ps5_1.png",
+      "/images/playstation_image.png",
       "/images/ps5_2.png"
     ]
   }

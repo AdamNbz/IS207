@@ -3,11 +3,13 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useAppContext } from "../context/AppContext";
 import Image from "next/image";
+import AuthModal from "./AuthModal";
+
 
 const Navbar = () => {
   const { router } = useAppContext(); // chỉ lấy router
   const [searchQuery, setSearchQuery] = useState("");
-
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
   const handleSearch = (e) => {
     e.preventDefault();
     router.push(`/all-products?search=${searchQuery}`);
@@ -31,13 +33,16 @@ const Navbar = () => {
           Trang chủ
         </Link>
         <Link href="/all-products" className="hover:text-gray-900 transition">
-          Shop
+          Sản phẩm
         </Link>
         <Link href="/about-us" className="hover:text-gray-900 transition">
-          Về Chúng tôi
+          Về chúng tôi
         </Link>
         <Link href="/" className="hover:text-gray-900 transition">
           Địa chỉ liên hệ
+        </Link>
+        <Link href="/support" className="hover:text-gray-900 transition">
+          Chính sách
         </Link>
       </div>
 
@@ -75,14 +80,16 @@ const Navbar = () => {
           {/* Đăng nhập / Đăng ký */}
           <div className="flex items-center gap-1 text-gray-700 text-sm font-medium">
             <button
-              onClick={() => console.log("Đăng nhập")}
+              onClick={() => setIsAuthOpen(true)}
+              // onClick={() => console.log("Đăng nhập")}
               className="hover:text-gray-900 transition"
             >
               Đăng nhập
             </button>
             <span>|</span>
             <button
-              onClick={() => console.log("Đăng ký")}
+              onClick={() => setIsAuthOpen(true)}
+              // onClick={() => console.log("Đăng ký")}
               className="hover:text-gray-900 transition"
             >
               Đăng ký
@@ -107,7 +114,9 @@ const Navbar = () => {
 
       {/* Mobile icons */}
       <div className="flex items-center md:hidden gap-3">
-        <button className="flex items-center gap-2 hover:text-gray-900 transition">
+        <button 
+        onClick={() => setIsAuthOpen(true)}
+        className="flex items-center gap-2 hover:text-gray-900 transition">
           <Image
             src="/images/user_icon.svg"
             alt="user icon"
@@ -129,6 +138,7 @@ const Navbar = () => {
           </span>
         </button>
       </div>
+      <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
     </nav>
   );
 };

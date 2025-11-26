@@ -13,7 +13,7 @@ export const useAppContext = () => useContext(AppContext);
 // Provider
 export const AppContextProvider = (props) => {
 
-  const currency = process.env.NEXT_PUBLIC_CURRENCY || "$";
+  const currency = process.env.NEXT_PUBLIC_CURRENCY || "VNĐ";
   const router = useRouter();
 
   const [products, setProducts] = useState([]);
@@ -65,12 +65,12 @@ export const AppContextProvider = (props) => {
   }, []);
 
   const value = {
-    currency, router,
+    router, currency,
     userData, fetchUserData,
     products, fetchProductData,
     cartItems, setCartItems,
     addToCart, updateCartQuantity,
-    getCartCount, getCartAmount
+    getCartCount, getCartAmount,
   }
 
   return (

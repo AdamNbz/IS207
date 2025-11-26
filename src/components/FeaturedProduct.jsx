@@ -26,7 +26,7 @@ const FeaturedProduct = () => {
   return (
     <div className="mt-14">
       <div className="flex flex-col items-center">
-        <p className="text-3xl font-medium">Featured Products</p>
+        <p className="text-3xl font-medium">Sản phẩm nổi bật</p>
         <div className="w-28 h-0.5 bg-orange-600 mt-2"></div>
       </div>
 
