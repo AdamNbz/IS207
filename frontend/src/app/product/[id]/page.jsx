@@ -1,81 +1,141 @@
 "use client";
-
-import React from "react";
+import React, { useState, useEffect } from "react";
+import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import Loading from "@/components/Loading";
+import ProductCard from "@/components/ProductCard";
+import { useAppContext } from "@/context/AppContext";
+import { useParams } from "next/navigation";
 
-export default function WarrantyPolicyPage() {
+const Product = () => {
+  const { id } = useParams();
+  const { products, router, addToCart } = useAppContext();
+
+  const [mainImage, setMainImage] = useState(null);
+  const [productData, setProductData] = useState(null);
+
+  useEffect(() => {
+    const product = products.find((p) => p._id === id);
+    setProductData(product || null);
+  }, [id, products]);
+
+  if (!productData) return <Loading />;
+
   return (
     <>
       <Navbar />
+      <div className="px-6 md:px-16 lg:px-32 pt-14 space-y-10">
+        {/* Product Images */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
+          <div className="px-5 lg:px-16 xl:px-20">
+            <div className="rounded-lg overflow-hidden bg-gray-500/10 mb-4">
+              <Image
+                src={mainImage || productData.image[0]}
+                alt={productData.name}
+                className="w-full h-auto object-cover"
+                width={1280}
+                height={720}
+              />
+            </div>
+            <div className="grid grid-cols-4 gap-4">
+              {productData.image.map((img, idx) => (
+                <div
+                  key={idx}
+                  onClick={() => setMainImage(img)}
+                  className="cursor-pointer rounded-lg overflow-hidden bg-gray-500/10"
+                >
+                  <Image
+                    src={img}
+                    alt={`${productData.name} ${idx + 1}`}
+                    className="w-full h-auto object-cover"
+                    width={1280}
+                    height={720}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
 
-      <div className="px-6 md:px-20 lg:px-40 py-12 text-gray-800">
-        {/* Tiêu đề */}
-        <h1 className="text-3xl font-bold mb-4">Chính Sách Bảo Hành</h1>
-        <div className="w-20 h-1 bg-orange-600 mb-8 rounded-full"></div>
-
-        {/* Nội dung */}
-        <div className="space-y-8 leading-relaxed">
-
-          <section>
-            <h2 className="text-xl font-semibold mb-2">1. Thời gian bảo hành</h2>
-            <p>
-              • Sản phẩm laptop được bảo hành <span className="font-semibold">12 tháng</span> theo chính sách của hãng.
-              <br />• Pin và sạc được bảo hành <span className="font-semibold">6 tháng</span>.
+          {/* Product Info */}
+          <div className="flex flex-col">
+            <h1 className="text-3xl font-medium text-gray-800/90 mb-4">
+              {productData.name}
+            </h1>
+            <p className="text-gray-600 mt-3">{productData.description}</p>
+            <p className="text-3xl font-medium mt-6">
+              {productData.offerPrice}
+              <span className="text-base font-normal text-gray-800/60 line-through ml-2">
+                {productData.price}
+              </span>
             </p>
-          </section>
+            <hr className="bg-gray-600 my-6" />
 
-          <section>
-            <h2 className="text-xl font-semibold mb-2">2. Điều kiện bảo hành</h2>
-            <p>
-              • Sản phẩm còn tem bảo hành, không bị rách hoặc sửa đổi. <br />
-              • Không bị va đập, vô nước hoặc cháy nổ do người dùng. <br />
-              • Máy không bị can thiệp phần cứng bởi bên thứ ba.
+            {/* Attributes Table */}
+            <div className="overflow-x-auto">
+              <table className="table-auto border-collapse w-full max-w-72">
+                <tbody>
+                  <tr>
+                    <td className="text-gray-600 font-medium">Thương hiệu</td>
+                    <td className="text-gray-800/50">{productData.brand || "Generic"}</td>
+</tr>
+                  <tr>
+                    <td className="text-gray-600 font-medium">Màu</td>
+                    <td className="text-gray-800/50">{productData.color || "Multi"}</td>
+                  </tr>
+                  <tr>
+                    <td className="text-gray-600 font-medium">Loại</td>
+                    <td className="text-gray-800/50">{productData.category}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center mt-10 gap-4">
+              <button
+                onClick={() => addToCart(productData._id)}
+                className="w-full py-3.5 bg-gray-100 text-gray-800/80 hover:bg-gray-200 transition"
+              >
+                Thêm vào giỏ hàng
+              </button>
+              <button
+                onClick={() => {
+                  addToCart(productData._id);
+                  router.push("/cart");
+                }}
+                className="w-full py-3.5 bg-orange-500 text-white hover:bg-orange-600 transition"
+              >
+                Mua ngay
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Featured Products */}
+        <div className="flex flex-col items-center">
+          <div className="flex flex-col items-center mb-4 mt-16">
+            <p className="text-3xl font-medium">
+              Sản phẩm <span className="text-orange-600">Tương tự</span>
             </p>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold mb-2">3. Trường hợp không được bảo hành</h2>
-            <p>
-              • Máy bị rơi, nứt, móp hoặc cong Mainboard. <br />
-              • Hư hỏng do sử dụng sai hướng dẫn. <br />
-              • Phần mềm bị lỗi do người dùng tự cài đặt. <br />
-              • Máy bị vào nước, ẩm mốc, cháy nổ.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold mb-2">4. Quy trình bảo hành</h2>
-            <p>
-              • Khách hàng mang sản phẩm và hoá đơn mua hàng đến cửa hàng. <br />
-              • Nhân viên kiểm tra và tiếp nhận máy. <br />
-              • Thời gian xử lý bảo hành từ <span className="font-semibold">3–7 ngày</span> tuỳ tình trạng. <br />
-              • Trường hợp phải gửi hãng có thể lâu hơn.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold mb-2">5. Đổi trả sản phẩm</h2>
-            <p>
-              • Đổi mới trong <span className="font-semibold">7 ngày</span> nếu lỗi phần cứng từ nhà sản xuất. <br />
-              • Không áp dụng đổi trả với sản phẩm lỗi do người dùng.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold mb-2">6. Liên hệ hỗ trợ</h2>
-            <p>
-              Nếu bạn cần hỗ trợ thêm, vui lòng liên hệ:
-              <br />• Hotline: <span className="font-semibold">0123 456 789</span>
-              <br />• Email: <span className="font-semibold">support@laptopstore.vn</span>
-              <br />• Fanpage: Laptop Store
-            </p>
-          </section>
-
+            <div className="w-28 h-0.5 bg-orange-600 mt-2"></div>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 mt-6 pb-14 w-full">
+            {products.slice(0, 5).map((p, i) => (
+              <ProductCard key={i} product={p} />
+            ))}
+          </div>
+          <button
+            onClick={() => router.push("/all-products")}
+            className="px-8 py-2 mb-16 border rounded text-gray-500/70 hover:bg-slate-50/90 transition"
+          >
+            Xem thêm
+          </button>
         </div>
       </div>
-
       <Footer />
     </>
   );
-}
+};
+
+export default Product;
