@@ -19,4 +19,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // Giỏ hàng
     Route::get('/cart', [CartController::class, 'index']);
     Route::post('/cart/add', [CartController::class, 'addToCart']);
+    Route::put('/cart/update', [CartController::class, 'update']);
+    Route::delete('/cart/remove/{productId}', [CartController::class, 'removeFromCart']);
+
+    // TƯơng tác
+    Route::post('/addresses', [AuthController::class, 'addAddresses']);
 });
