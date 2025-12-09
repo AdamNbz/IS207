@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\UserAddress;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 
@@ -83,5 +84,35 @@ class AuthController extends Controller
     // 4. Lấy thông tin người dùng hiện tại (Me)
     public function me(Request $request) {
         return response()->json($request->user());
+    }
+
+    // 5. Thêm địa chỉ cho người dùng hiện tại
+    public function addAddresses(Request $request) {
+        $request->validate([
+            'address_line' => 'required|string|max:255',
+            'city' => 'required|string|max:100',
+            'district' => 'required|string|max:100',
+            'is_default' => 'sometimes|boolean',
+        ]);
+
+        $user = $request->user();
+
+        // If is_default is true, unset previous default addresses
+        if ($request->boolean('is_default')) {
+            UserAddress::where('user_id', $user->id)->update(['is_default' => false]);
+        }
+
+        $address = UserAddress::create([
+            'user_id' => $user->id,
+            'address_line' => $request->address_line,
+            'city' => $request->city,
+            'district' => $request->district,
+            'is_default' => $request->boolean('is_default', false),
+        ]);
+
+        return response()->json([
+            'message' => 'Address added',
+            'address' => $address,
+        ], 201);
     }
 }
