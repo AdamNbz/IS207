@@ -21,7 +21,7 @@ Route::get('/get-token-khach', function () {
 // Bên ngoài Middleware Sanctum là PUBLIC ROUTES (Các API không cần đăng nhập để ở đây)
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
-//Route::get('/products', [ProductController::class, 'index']); // Xem sản phẩm
+Route::get('/products', [ProductController::class, 'index']); // Xem sản phẩm
 Route::get('/products/{id}', [ProductController::class, 'show']); // Chi tiết sản phẩm
 Route::get('/categories', [CategoryController::class, 'index']); // Danh sách danh mục
 Route::get('/brands', [BrandController::class, 'index']); // Danh sách brands
@@ -36,6 +36,11 @@ Route::middleware('auth:sanctum')->group(function () {
     // Giỏ hàng
     Route::get('/cart', [CartController::class, 'index']);
     Route::post('/cart/add', [CartController::class, 'addToCart']);
+    Route::put('/cart/update', [CartController::class, 'update']);
+    Route::delete('/cart/remove/{productId}', [CartController::class, 'removeFromCart']);
+
+    // TƯơng tác
+    Route::post('/addresses', [AuthController::class, 'addAddresses']);
 
     // 1. Nhóm Checkout (Dùng CheckoutController)
     Route::post('/checkout', [CheckoutController::class, 'checkout']);
