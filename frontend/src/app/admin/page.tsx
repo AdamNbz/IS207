@@ -143,21 +143,29 @@ export default function AdminPage() {
       const items = data.data || [];
 
       // Map API response to local Product type
-      const mapped = items.map((item: any) => ({
-        id: item.id.toString(),
-        name: item.name,
-        brand: item.brand?.name || "N/A",
-        brand_id: item.brand?.id,
-        category_id: item.category?.id,
-        price: item.price,
-        stock: item.stock,
-        old_price: item.old_price,
-        sku: item.sku,
-        thumbnail: item.thumbnail,
-        is_active: item.is_active,
-        is_featured: item.is_featured,
-        images: item.images,
-      }));
+      const mapped = items.map((item: any) => {
+        // Only prepend localhost if thumbnail is a relative path
+        let thumbnailUrl = item.thumbnail;
+        if (thumbnailUrl && !thumbnailUrl.startsWith("http://") && !thumbnailUrl.startsWith("https://")) {
+          thumbnailUrl = `http://localhost:8001${thumbnailUrl}`;
+        }
+
+        return {
+          id: item.id.toString(),
+          name: item.name,
+          brand: item.brand?.name || "N/A",
+          brand_id: item.brand?.id,
+          category_id: item.category?.id,
+          price: item.price,
+          stock: item.stock,
+          old_price: item.old_price,
+          sku: item.sku,
+          thumbnail: thumbnailUrl,
+          is_active: item.is_active,
+          is_featured: item.is_featured,
+          images: item.images,
+        };
+      });
 
       setProducts(mapped);
     } catch (err: any) {
@@ -173,7 +181,7 @@ export default function AdminPage() {
   const filtered = products.filter((p) => p.name.toLowerCase().includes(query.toLowerCase()) || p.brand.toLowerCase().includes(query.toLowerCase()));
 
   // CRUD operations with API
-  async function addOrUpdateProduct(p: Product, file?: File) {
+  async function addOrUpdateProduct(p: Product, file?: File, gallery?: FileList | null) {
     setLoading(true);
     setError("");
 
@@ -194,11 +202,23 @@ export default function AdminPage() {
       if (p.is_featured !== undefined) formData.append("is_featured", p.is_featured ? "1" : "0");
       if (file) formData.append("thumbnail", file);
 
+      if (gallery) {
+        for (let i = 0; i < gallery.length; i++) {
+          formData.append("images[]", gallery[i]);
+        }
+      }
+
       const isUpdate = selected !== null;
+
+      // For update with file upload, use POST with _method override
+      if (isUpdate) {
+        formData.append("_method", "PUT");
+      }
+
       const url = isUpdate ? `${API_BASE}/admin/products/${p.id}` : `${API_BASE}/admin/products`;
 
       const response = await fetch(url, {
-        method: isUpdate ? "PUT" : "POST",
+        method: "POST", // Always POST for file uploads
         headers: {
           Authorization: `Bearer ${token}`,
           Accept: "application/json",
@@ -521,7 +541,7 @@ function Dashboard({ products }: { products: Product[] }) {
   );
 }
 
-function ProductForm({ product, onSave, onCancel }: { product: Product | null; onSave: (p: Product, file?: File) => void; onCancel: () => void }) {
+function ProductForm({ product, onSave, onCancel }: { product: Product | null; onSave: (p: Product, file?: File, gallery?: FileList | null) => void; onCancel: () => void }) {
   const [id] = useState(product?.id ?? `p${Math.random().toString(36).slice(2, 8)}`);
   const [name, setName] = useState(product?.name ?? "");
   const [brand, setBrand] = useState(product?.brand ?? "");
@@ -535,6 +555,7 @@ function ProductForm({ product, onSave, onCancel }: { product: Product | null; o
   const [isActive, setIsActive] = useState(product?.is_active ?? true);
   const [isFeatured, setIsFeatured] = useState(product?.is_featured ?? false);
   const [thumbnailFile, setThumbnailFile] = useState<File | undefined>();
+  const [galleryFiles, setGalleryFiles] = useState<FileList | null>(null);
 
   const [brands, setBrands] = useState<Array<{ id: number; name: string }>>([]);
   const [categories, setCategories] = useState<Array<{ id: number; name: string }>>([]);
@@ -574,7 +595,8 @@ function ProductForm({ product, onSave, onCancel }: { product: Product | null; o
         is_active: isActive,
         is_featured: isFeatured,
       },
-      thumbnailFile
+      thumbnailFile,
+      galleryFiles
     );
   }
 
@@ -637,6 +659,11 @@ function ProductForm({ product, onSave, onCancel }: { product: Product | null; o
           <input type="file" accept="image/*" onChange={(e) => setThumbnailFile(e.target.files?.[0])} className="w-full border rounded px-3 py-2" />
         </label>
       </div>
+
+      <label className="space-y-1">
+        <div className="text-sm text-gray-600">Ảnh minh họa (nhiều ảnh)</div>
+        <input type="file" accept="image/*" multiple onChange={(e) => setGalleryFiles(e.target.files)} className="w-full border rounded px-3 py-2" />
+      </label>
 
       <label className="space-y-1">
         <div className="text-sm text-gray-600">Mô tả</div>

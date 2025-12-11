@@ -115,6 +115,7 @@ class ProductController extends Controller
             'is_active'   => 'sometimes|boolean',
             'is_featured' => 'sometimes|boolean',
             'thumbnail'   => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048', // file upload
+            'images.*'    => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048', // multiple files
         ]);
 
         // Generate slug from name
@@ -124,15 +125,35 @@ class ProductController extends Controller
         if ($request->hasFile('thumbnail')) {
             $file = $request->file('thumbnail');
             $filename = time() . '_' . Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
-            $path = $file->storeAs('public/uploads', $filename);
-            $validated['thumbnail'] = Storage::url($path);
+            $path = $file->storeAs('uploads', $filename, 'public');
+            $validated['thumbnail'] = url('storage/' . $path);
+        }
+
+        // Remove images from validated data as it's not in products table
+        if (isset($validated['images'])) {
+            unset($validated['images']);
         }
 
         $product = Product::create($validated);
 
+        // Handle multiple images upload
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $index => $file) {
+                $filename = time() . '_' . Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '_' . $index . '.' . $file->getClientOriginalExtension();
+                $path = $file->storeAs('uploads', $filename, 'public');
+                $url = url('storage/' . $path);
+
+                ProductImage::create([
+                    'product_id'    => $product->id,
+                    'image_url'     => $url,
+                    'display_order' => $index,
+                ]);
+            }
+        }
+
         return response()->json([
             'message' => 'Sản phẩm đã được tạo thành công',
-            'product' => $product->load('brand:id,name', 'category:id,name'),
+            'product' => $product->load('brand:id,name', 'category:id,name', 'images'),
         ], 201);
     }
 
@@ -195,6 +216,7 @@ class ProductController extends Controller
             'is_active'   => 'sometimes|boolean',
             'is_featured' => 'sometimes|boolean',
             'thumbnail'   => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'images.*'    => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
         // Update slug if name changed
@@ -206,21 +228,44 @@ class ProductController extends Controller
         if ($request->hasFile('thumbnail')) {
             // Delete old thumbnail if exists
             if ($product->thumbnail) {
-                $oldPath = str_replace('/storage', 'public', $product->thumbnail);
-                Storage::delete($oldPath);
+                $oldPath = str_replace('/storage/', '', $product->thumbnail);
+                if (Storage::disk('public')->exists($oldPath)) {
+                    Storage::disk('public')->delete($oldPath);
+                }
             }
 
             $file = $request->file('thumbnail');
             $filename = time() . '_' . Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
-            $path = $file->storeAs('public/uploads', $filename);
-            $validated['thumbnail'] = Storage::url($path);
+            $path = $file->storeAs('uploads', $filename, 'public');
+            $validated['thumbnail'] = url('storage/' . $path);
+        }
+
+        // Remove images from validated data as it's not in products table
+        if (isset($validated['images'])) {
+            unset($validated['images']);
         }
 
         $product->update($validated);
 
+        // Handle multiple images upload (Append)
+        if ($request->hasFile('images')) {
+            $currentMaxOrder = $product->images()->max('display_order') ?? 0;
+            foreach ($request->file('images') as $index => $file) {
+                $filename = time() . '_' . Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '_' . $index . '.' . $file->getClientOriginalExtension();
+                $path = $file->storeAs('uploads', $filename, 'public');
+                $url = url('storage/' . $path);
+
+                ProductImage::create([
+                    'product_id'    => $product->id,
+                    'image_url'     => $url,
+                    'display_order' => $currentMaxOrder + $index + 1,
+                ]);
+            }
+        }
+
         return response()->json([
             'message' => 'Sản phẩm đã được cập nhật',
-            'product' => $product->load('brand:id,name', 'category:id,name'),
+            'product' => $product->load('brand:id,name', 'category:id,name', 'images'),
         ]);
     }
 
@@ -234,14 +279,18 @@ class ProductController extends Controller
 
         // Delete thumbnail
         if ($product->thumbnail) {
-            $oldPath = str_replace('/storage', 'public', $product->thumbnail);
-            Storage::delete($oldPath);
+            $oldPath = str_replace('/storage/', '', $product->thumbnail);
+            if (Storage::disk('public')->exists($oldPath)) {
+                Storage::disk('public')->delete($oldPath);
+            }
         }
 
         // Delete associated images
         foreach ($product->images as $image) {
-            $imagePath = str_replace('/storage', 'public', $image->image_url);
-            Storage::delete($imagePath);
+            $imagePath = str_replace('/storage/', '', $image->image_url);
+            if (Storage::disk('public')->exists($imagePath)) {
+                Storage::disk('public')->delete($imagePath);
+            }
         }
 
         $product->delete();

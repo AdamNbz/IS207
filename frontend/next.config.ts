@@ -4,6 +4,12 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {
+        protocol: "http",
+        hostname: "localhost",
+        port: "8001",
+        pathname: "/storage/**",
+      },
+      {
         protocol: "https",
         hostname: "i.dell.com",
       },
