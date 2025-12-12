@@ -22,6 +22,7 @@ type Product = {
   is_featured?: boolean;
   description?: string;
   images?: Array<{ id: number; url: string; order: number }>;
+  specs?: Array<{ id?: number; name: string; value: string }>;
 };
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
@@ -37,6 +38,7 @@ export default function AdminPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showHidden, setShowHidden] = useState(false);
 
   const [selected, setSelected] = useState<Product | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -150,6 +152,7 @@ export default function AdminPage() {
           thumbnailUrl = `http://localhost:8001${thumbnailUrl}`;
         }
 
+        const isActive = item.is_active === 1 || item.is_active === true || item.is_active === "1" ? true : false;
         return {
           id: item.id.toString(),
           name: item.name,
@@ -161,12 +164,17 @@ export default function AdminPage() {
           old_price: item.old_price,
           sku: item.sku,
           thumbnail: thumbnailUrl,
-          is_active: item.is_active,
-          is_featured: item.is_featured,
+          is_active: isActive,
+          is_featured: Boolean(item.is_featured),
           images: item.images,
         };
       });
 
+      console.log("Fetched products:", mapped.length, "Active:", mapped.filter((p: Product) => p.is_active).length, "Inactive:", mapped.filter((p: Product) => !p.is_active).length);
+      console.log(
+        "All products:",
+        mapped.map((p: Product) => ({ id: p.id, name: p.name, is_active: p.is_active }))
+      );
       setProducts(mapped);
     } catch (err: any) {
       setError(err.message);
@@ -178,7 +186,18 @@ export default function AdminPage() {
 
   // helpers
   const money = (v: number) => v.toLocaleString("vi-VN") + "₫";
-  const filtered = products.filter((p) => p.name.toLowerCase().includes(query.toLowerCase()) || p.brand.toLowerCase().includes(query.toLowerCase()));
+  const filtered = products.filter((p) => {
+    const matchesQuery = p.name.toLowerCase().includes(query.toLowerCase()) || p.brand.toLowerCase().includes(query.toLowerCase());
+    // If showHidden is true, show all products. If false, only show active ones.
+    const matchesStatus = showHidden ? true : p.is_active === true;
+    return matchesQuery && matchesStatus;
+  });
+
+  // Count stats
+  const activeCount = products.filter((p: Product) => p.is_active).length;
+  const inactiveCount = products.filter((p: Product) => !p.is_active).length;
+
+  console.log("Filter state - showHidden:", showHidden, "Total:", products.length, "Filtered:", filtered.length, "Active:", activeCount, "Inactive:", inactiveCount);
 
   // CRUD operations with API
   async function addOrUpdateProduct(p: Product, file?: File, gallery?: FileList | null) {
@@ -206,6 +225,14 @@ export default function AdminPage() {
         for (let i = 0; i < gallery.length; i++) {
           formData.append("images[]", gallery[i]);
         }
+      }
+
+      // Handle specs
+      if (p.specs && p.specs.length > 0) {
+        p.specs.forEach((spec, index) => {
+          formData.append(`specs[${index}][name]`, spec.name);
+          formData.append(`specs[${index}][value]`, spec.value);
+        });
       }
 
       const isUpdate = selected !== null;
@@ -301,7 +328,13 @@ export default function AdminPage() {
         is_active: data.is_active,
         is_featured: data.is_featured,
         description: data.description,
-        images: data.images,
+        images:
+          data.images?.map((img: any) => ({
+            id: img.id,
+            url: img.image_url?.startsWith("http") ? img.image_url : `http://localhost:8001${img.image_url}`,
+            order: img.display_order || 0,
+          })) || [],
+        specs: data.specs || [],
       };
 
       setSelected(product);
@@ -379,6 +412,15 @@ export default function AdminPage() {
             </div>
             <button
               onClick={() => {
+                console.log("Toggle showHidden:", !showHidden, "Total products:", products.length, "Inactive:", products.filter((p) => !p.is_active).length);
+                setShowHidden(!showHidden);
+              }}
+              className={`px-3 py-2 rounded-md border text-sm ${showHidden ? "bg-gray-600 text-white border-gray-600" : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"}`}
+            >
+              {showHidden ? `Ẩn SP đã tắt (${inactiveCount})` : `Hiện SP đã tắt (${inactiveCount})`}
+            </button>
+            <button
+              onClick={() => {
                 setShowForm(true);
                 setSelected(null);
                 setView("products");
@@ -425,13 +467,16 @@ export default function AdminPage() {
                     </tr>
                   )}
                   {filtered.map((p) => (
-                    <tr key={p.id} className="border-t hover:bg-gray-50">
+                    <tr key={p.id} className={`border-t ${!p.is_active ? "bg-red-50" : "hover:bg-gray-50"}`}>
                       <td className="p-3 flex items-center gap-3">
-                        <div className="w-16 h-10 bg-gray-100 rounded overflow-hidden flex-shrink-0">
-                          {p.thumbnail ? <Image src={p.thumbnail} alt={p.name} width={64} height={40} className="object-cover" /> : <div />}
+                        <div className="w-16 h-10 bg-gray-100 rounded overflow-hidden flex-shrink-0 relative">
+                          {p.thumbnail ? <Image src={p.thumbnail} alt={p.name} width={64} height={40} className={`object-cover ${!p.is_active ? "opacity-50" : ""}`} /> : <div />}
                         </div>
                         <div>
-                          <div className="font-medium">{p.name}</div>
+                          <div className="font-medium flex items-center gap-2">
+                            {p.name}
+                            {!p.is_active && <span className="text-[10px] bg-red-100 text-red-600 px-1.5 py-0.5 rounded border border-red-200">Đã ẩn</span>}
+                          </div>
                           <div className="text-xs text-gray-500">ID: {p.id}</div>
                         </div>
                       </td>
@@ -440,19 +485,10 @@ export default function AdminPage() {
                       <td className="p-3">{p.stock}</td>
                       <td className="p-3">
                         <div className="flex gap-2">
-                          <button onClick={() => viewProductDetail(p.id)} className="px-3 py-1 text-sm border rounded">
-                            Chi tiết
-                          </button>
-                          <button
-                            onClick={() => {
-                              setSelected(p);
-                              setShowForm(true);
-                            }}
-                            className="px-3 py-1 text-sm border rounded"
-                          >
+                          <button onClick={() => viewProductDetail(p.id)} className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">
                             Sửa
                           </button>
-                          <button onClick={() => removeProduct(p.id)} className="px-3 py-1 text-sm bg-red-600 text-white rounded">
+                          <button onClick={() => removeProduct(p.id)} className="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700">
                             Xóa
                           </button>
                         </div>
@@ -556,9 +592,19 @@ function ProductForm({ product, onSave, onCancel }: { product: Product | null; o
   const [isFeatured, setIsFeatured] = useState(product?.is_featured ?? false);
   const [thumbnailFile, setThumbnailFile] = useState<File | undefined>();
   const [galleryFiles, setGalleryFiles] = useState<FileList | null>(null);
+  const [specs, setSpecs] = useState<Array<{ name: string; value: string }>>(product?.specs || []);
+  const [existingImages, setExistingImages] = useState<Array<{ id: number; url: string; order: number }>>(product?.images || []);
 
   const [brands, setBrands] = useState<Array<{ id: number; name: string }>>([]);
   const [categories, setCategories] = useState<Array<{ id: number; name: string }>>([]);
+
+  // Suggested specs based on category
+  const specSuggestions: Record<number, string[]> = {
+    1: ["CPU", "RAM", "Storage", "Screen", "GPU", "Battery", "Weight"], // Laptop
+    2: ["CPU", "RAM", "Storage", "Screen", "Battery", "Camera", "5G"], // Smartphone
+    3: ["CPU", "Screen", "Storage", "Battery", "Stylus", "Weight"], // Tablet
+    4: ["Connectivity", "DPI", "Buttons", "Weight", "Battery"], // Mouse/Keyboard
+  };
 
   // Fetch brands and categories on mount
   useEffect(() => {
@@ -594,11 +640,54 @@ function ProductForm({ product, onSave, onCancel }: { product: Product | null; o
         description,
         is_active: isActive,
         is_featured: isFeatured,
+        specs,
       },
       thumbnailFile,
       galleryFiles
     );
   }
+
+  function addSpec(suggestedName?: string) {
+    setSpecs([...specs, { name: suggestedName || "", value: "" }]);
+  }
+
+  function removeSpec(index: number) {
+    setSpecs(specs.filter((_, i) => i !== index));
+  }
+
+  function updateSpec(index: number, field: "name" | "value", value: string) {
+    const newSpecs = [...specs];
+    newSpecs[index][field] = value;
+    setSpecs(newSpecs);
+  }
+
+  async function deleteExistingImage(imageId: number) {
+    if (!confirm("Xác nhận xóa ảnh này?")) return;
+
+    try {
+      const token = localStorage.getItem("admin_token");
+      const response = await fetch(`${API_BASE}/admin/products/images/${imageId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Không thể xóa ảnh");
+      }
+
+      // Remove from local state
+      setExistingImages(existingImages.filter((img) => img.id !== imageId));
+      alert("Đã xóa ảnh thành công!");
+    } catch (err: any) {
+      alert(err.message);
+      console.error("Error deleting image:", err);
+    }
+  }
+
+  const currentSuggestions = specSuggestions[categoryId] || [];
 
   return (
     <div className="mt-4 space-y-4 max-h-[70vh] overflow-y-auto">
@@ -665,10 +754,74 @@ function ProductForm({ product, onSave, onCancel }: { product: Product | null; o
         <input type="file" accept="image/*" multiple onChange={(e) => setGalleryFiles(e.target.files)} className="w-full border rounded px-3 py-2" />
       </label>
 
+      {/* Display existing images */}
+      {existingImages.length > 0 && (
+        <div className="space-y-2">
+          <div className="text-sm font-medium text-gray-700">Ảnh minh họa hiện có:</div>
+          <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
+            {existingImages.map((img) => (
+              <div key={img.id} className="relative group">
+                <div className="aspect-video bg-gray-100 rounded overflow-hidden border">
+                  <img src={img.url} alt="Product image" className="object-cover w-full h-full" />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => deleteExistingImage(img.id)}
+                  className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-700"
+                  title="Xóa ảnh"
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <label className="space-y-1">
         <div className="text-sm text-gray-600">Mô tả</div>
         <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="w-full border rounded px-3 py-2" />
       </label>
+
+      {/* Product Specs Section */}
+      <div className="space-y-3 border-t pt-4">
+        <div className="flex items-center justify-between">
+          <div className="text-sm font-medium text-gray-700">Thông số kỹ thuật</div>
+          <button type="button" onClick={() => addSpec()} className="text-xs px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">
+            + Thêm thông số
+          </button>
+        </div>
+
+        {currentSuggestions.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            <span className="text-xs text-gray-500">Gợi ý:</span>
+            {currentSuggestions.map((suggestion) => (
+              <button key={suggestion} type="button" onClick={() => addSpec(suggestion)} className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded hover:bg-gray-200 border">
+                + {suggestion}
+              </button>
+            ))}
+          </div>
+        )}
+
+        <div className="space-y-2 max-h-60 overflow-y-auto">
+          {specs.map((spec, index) => (
+            <div key={index} className="flex gap-2 items-center">
+              <input type="text" value={spec.name} onChange={(e) => updateSpec(index, "name", e.target.value)} placeholder="Tên (VD: CPU)" className="w-1/3 border rounded px-2 py-1 text-sm" />
+              <input
+                type="text"
+                value={spec.value}
+                onChange={(e) => updateSpec(index, "value", e.target.value)}
+                placeholder="Giá trị (VD: Intel Core i7)"
+                className="flex-1 border rounded px-2 py-1 text-sm"
+              />
+              <button type="button" onClick={() => removeSpec(index)} className="text-red-600 hover:text-red-800 text-sm px-2">
+                ✕
+              </button>
+            </div>
+          ))}
+          {specs.length === 0 && <div className="text-xs text-gray-400 text-center py-2">Chưa có thông số nào</div>}
+        </div>
+      </div>
 
       <div className="flex gap-4">
         <label className="flex items-center gap-2">

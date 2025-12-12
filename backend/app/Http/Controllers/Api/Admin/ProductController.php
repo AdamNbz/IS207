@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\ProductImage;
+use App\Models\ProductSpec;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -72,8 +73,8 @@ class ProductController extends Controller
                 'old_price'   => $product->old_price,
                 'stock'       => $product->stock,
                 'thumbnail'   => $product->thumbnail,
-                'is_active'   => $product->is_active,
-                'is_featured' => $product->is_featured,
+                'is_active'   => (bool) $product->is_active,
+                'is_featured' => (bool) $product->is_featured,
                 'view_count'  => $product->view_count,
                 'brand'       => $product->brand ? [
                     'id'   => $product->brand->id,
@@ -116,6 +117,9 @@ class ProductController extends Controller
             'is_featured' => 'sometimes|boolean',
             'thumbnail'   => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048', // file upload
             'images.*'    => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048', // multiple files
+            'specs'       => 'nullable|array',
+            'specs.*.name' => 'required|string|max:100',
+            'specs.*.value' => 'required|string|max:255',
         ]);
 
         // Generate slug from name
@@ -129,12 +133,27 @@ class ProductController extends Controller
             $validated['thumbnail'] = url('storage/' . $path);
         }
 
-        // Remove images from validated data as it's not in products table
+        // Remove images and specs from validated data as they're not in products table
+        $specs = $validated['specs'] ?? [];
         if (isset($validated['images'])) {
             unset($validated['images']);
         }
+        if (isset($validated['specs'])) {
+            unset($validated['specs']);
+        }
 
         $product = Product::create($validated);
+
+        // Handle product specs
+        if (!empty($specs)) {
+            foreach ($specs as $spec) {
+                ProductSpec::create([
+                    'product_id' => $product->id,
+                    'name' => $spec['name'],
+                    'value' => $spec['value'],
+                ]);
+            }
+        }
 
         // Handle multiple images upload
         if ($request->hasFile('images')) {
@@ -217,6 +236,9 @@ class ProductController extends Controller
             'is_featured' => 'sometimes|boolean',
             'thumbnail'   => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'images.*'    => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'specs'       => 'nullable|array',
+            'specs.*.name' => 'required|string|max:100',
+            'specs.*.value' => 'required|string|max:255',
         ]);
 
         // Update slug if name changed
@@ -240,12 +262,33 @@ class ProductController extends Controller
             $validated['thumbnail'] = url('storage/' . $path);
         }
 
-        // Remove images from validated data as it's not in products table
+        // Remove images and specs from validated data as they're not in products table
+        $specs = $validated['specs'] ?? null;
         if (isset($validated['images'])) {
             unset($validated['images']);
         }
+        if (isset($validated['specs'])) {
+            unset($validated['specs']);
+        }
 
         $product->update($validated);
+
+        // Handle product specs update (delete old, create new)
+        if ($specs !== null) {
+            // Delete all existing specs
+            ProductSpec::where('product_id', $product->id)->delete();
+
+            // Create new specs
+            if (!empty($specs)) {
+                foreach ($specs as $spec) {
+                    ProductSpec::create([
+                        'product_id' => $product->id,
+                        'name' => $spec['name'],
+                        'value' => $spec['value'],
+                    ]);
+                }
+            }
+        }
 
         // Handle multiple images upload (Append)
         if ($request->hasFile('images')) {
@@ -271,32 +314,44 @@ class ProductController extends Controller
 
     /**
      * DELETE /api/admin/products/{id}
-     * Xóa sản phẩm
+     * Soft delete sản phẩm (set is_active = 0)
      */
     public function destroy($id)
     {
         $product = Product::findOrFail((int) $id);
 
-        // Delete thumbnail
-        if ($product->thumbnail) {
-            $oldPath = str_replace('/storage/', '', $product->thumbnail);
-            if (Storage::disk('public')->exists($oldPath)) {
-                Storage::disk('public')->delete($oldPath);
-            }
-        }
-
-        // Delete associated images
-        foreach ($product->images as $image) {
-            $imagePath = str_replace('/storage/', '', $image->image_url);
-            if (Storage::disk('public')->exists($imagePath)) {
-                Storage::disk('public')->delete($imagePath);
-            }
-        }
-
-        $product->delete();
+        $product->is_active = false;
+        $product->save();
 
         return response()->json([
-            'message' => 'Sản phẩm đã được xóa',
+            'message' => 'Sản phẩm đã được ẩn (soft delete)',
+            'product' => [
+                'id' => $product->id,
+                'name' => $product->name,
+                'is_active' => $product->is_active,
+            ]
+        ]);
+    }
+
+    /**
+     * DELETE /api/admin/products/images/{imageId}
+     * Xóa một ảnh minh họa của sản phẩm
+     */
+    public function deleteImage($imageId)
+    {
+        $image = ProductImage::findOrFail((int) $imageId);
+
+        // Delete file from storage
+        $imagePath = str_replace(url('storage/'), '', $image->image_url);
+        if (Storage::disk('public')->exists($imagePath)) {
+            Storage::disk('public')->delete($imagePath);
+        }
+
+        // Delete record from database
+        $image->delete();
+
+        return response()->json([
+            'message' => 'Ảnh đã được xóa',
         ]);
     }
 }

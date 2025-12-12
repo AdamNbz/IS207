@@ -37,5 +37,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/products/{id}', [AdminProductController::class, 'show']);
         Route::put('/products/{id}', [AdminProductController::class, 'update']);
         Route::delete('/products/{id}', [AdminProductController::class, 'destroy']);
+        Route::delete('/products/images/{imageId}', [AdminProductController::class, 'deleteImage']);
     });
 });
