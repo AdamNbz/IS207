@@ -9,7 +9,6 @@ const AccountPage = () => {
   const { router } = useAppContext();
   const [activeTab, setActiveTab] = useState("profile");
 
-  // Mock user data - sau này sẽ lấy từ API
   const [userData, setUserData] = useState({
     name: "Nguyễn Văn A",
     phone: "1234567890",
@@ -23,7 +22,6 @@ const AccountPage = () => {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
 
   const handleLogout = () => {
-    // Xử lý đăng xuất
     router.push("/");
   };
 
@@ -38,13 +36,9 @@ const AccountPage = () => {
       <Navbar />
       <div className="min-h-screen bg-gray-50 px-6 md:px-16 lg:px-32 py-8">
         <div className="flex flex-col md:flex-row gap-6">
-          {/* Sidebar */}
           <div className="w-full md:w-64 flex-shrink-0">
             <div className="bg-blue-100 rounded-lg p-6">
-              {/* User Name */}
               <h2 className="text-2xl font-bold text-gray-800 mb-6">User1</h2>
-
-              {/* Menu Items */}
               <div className="space-y-2">
                 <button
                   onClick={() => setActiveTab("profile")}
@@ -56,7 +50,6 @@ const AccountPage = () => {
                 >
                   Tài khoản của tôi
                 </button>
-
                 <button
                   onClick={() => setActiveTab("orders")}
                   className={`w-full text-left px-4 py-3 rounded-lg font-medium transition ${
@@ -68,8 +61,6 @@ const AccountPage = () => {
                   Lịch sử mua hàng
                 </button>
               </div>
-
-              {/* Logout Button */}
               <button
                 onClick={handleLogout}
                 className="mt-8 bg-blue-500 hover:bg-blue-600 text-white font-medium px-6 py-2.5 rounded-lg transition"
@@ -78,17 +69,13 @@ const AccountPage = () => {
               </button>
             </div>
           </div>
-
-          {/* Main Content */}
           <div className="flex-1">
             {activeTab === "profile" && (
               <div className="bg-blue-50 rounded-lg p-8">
                 <h3 className="text-2xl font-bold text-gray-800 mb-8">
                   Thông tin cá nhân
                 </h3>
-
                 <div className="space-y-6">
-                  {/* Họ và tên */}
                   <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-8">
                     <label className="w-40 text-gray-700 font-medium">
                       Họ và tên
@@ -106,8 +93,6 @@ const AccountPage = () => {
                       <span className="text-gray-800">{userData.name}</span>
                     )}
                   </div>
-
-                  {/* Số điện thoại */}
                   <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-8">
                     <label className="w-40 text-gray-700 font-medium">
                       Số điện thoại
@@ -125,8 +110,6 @@ const AccountPage = () => {
                       <span className="text-gray-800">{userData.phone}</span>
                     )}
                   </div>
-
-                  {/* Giới tính */}
                   <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-8">
                     <label className="w-40 text-gray-700 font-medium">
                       Giới tính
@@ -164,8 +147,6 @@ const AccountPage = () => {
                       </label>
                     </div>
                   </div>
-
-                  {/* Ngày sinh */}
                   <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-8">
                     <label className="w-40 text-gray-700 font-medium">
                       Ngày sinh
@@ -185,8 +166,6 @@ const AccountPage = () => {
                       </span>
                     )}
                   </div>
-
-                  {/* Địa chỉ mặc định */}
                   <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-8">
                     <label className="w-40 text-gray-700 font-medium">
                       Địa chỉ mặc định
@@ -220,8 +199,6 @@ const AccountPage = () => {
                       </button>
                     </div>
                   </div>
-
-                  {/* Nút Chỉnh sửa / Lưu */}
                   <div className="pt-4">
                     {isEditing ? (
                       <div className="flex gap-4">
@@ -250,14 +227,11 @@ const AccountPage = () => {
                 </div>
               </div>
             )}
-
             {activeTab === "orders" && (
               <div className="bg-blue-50 rounded-lg p-8">
                 <h3 className="text-2xl font-bold text-gray-800 mb-8">
                   Lịch sử mua hàng
                 </h3>
-
-                {/* Empty state */}
                 <div className="text-center py-12">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -288,8 +262,6 @@ const AccountPage = () => {
           </div>
         </div>
       </div>
-
-      {/* Password Change Modal */}
       {showPasswordModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-8 w-full max-w-md mx-4">

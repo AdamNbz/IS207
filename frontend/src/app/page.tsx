@@ -16,10 +16,8 @@ const Home = () => {
       <div className="px-6 md:px-16 lg:px-32">
         <HeaderSlider />
         
-        {/* Sản phẩm phổ biến */}
         <HomeProducts />
 
-        {/* Sản phẩm Khuyến mãi */}
         <ProductSection 
           title="Sản phẩm Khuyến mãi" 
           badge="SALE"
@@ -27,15 +25,13 @@ const Home = () => {
           filterFn={(product) => product.offerPrice && product.price && product.offerPrice < product.price}
         />
 
-        {/* Sản phẩm Mới */}
         <ProductSection 
           title="Sản phẩm Mới" 
           badge="NEW"
           badgeColor="bg-green-500"
-          filterFn={(product) => product.isNew || true} // Tạm thời hiển thị tất cả, sau có thể thêm field isNew
+          filterFn={(product) => product.isNew || true}
         />
 
-        {/* Sản phẩm HOT */}
         <ProductSection 
           title="Sản phẩm HOT" 
           badge="HOT"
