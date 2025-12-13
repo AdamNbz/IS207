@@ -8,7 +8,7 @@ import Loading from "@/components/Loading";
 import ProductCard from "@/components/ProductCard";
 import { useParams, useRouter } from "next/navigation";
 
-const API_URL = "http://127.0.0.1:8001/api";
+const API_URL = "http://127.0.0.1:8000/api";
 
 const Product = () => {
   const { id } = useParams();
