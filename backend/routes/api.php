@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\Admin\AdminOrderController;
 use App\Http\Controllers\Api\Admin\AdminPromotionController;
+use App\Http\Controllers\Api\UserPromotionController;
 
 Route::get('/get-token-admin', function () {
     // 1. Tìm user tên là 'admin shop'
@@ -66,10 +67,10 @@ Route::get('/products', [ProductController::class, 'index']); // Xem sản phẩ
 Route::get('/products/{id}', [ProductController::class, 'show']); // Chi tiết sản phẩm
 Route::get('/categories', [CategoryController::class, 'index']); // Danh sách danh mục
 Route::get('/brands', [BrandController::class, 'index']); // Danh sách brands
+Route::get('/promotions/{id}/products', [UserPromotionController::class, 'getProducts']);
 
 // Bên trong Middleware Sanctum này là PRIVATE ROUTES (Phải có Token mới vào được)
 Route::middleware('auth:sanctum')->group(function () {
-
     // Auth
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'me']); // Lấy thông tin bản thân
