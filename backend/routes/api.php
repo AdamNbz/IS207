@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\CheckoutController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\Admin\AdminOrderController;
+use App\Http\Controllers\Api\Admin\AdminPromotionController;
 
 Route::get('/get-token-admin', function () {
     // 1. Tìm user tên là 'admin shop'
@@ -26,6 +27,17 @@ Route::get('/get-token-admin', function () {
     return ['token' => $token];
 });
 
+Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
+    
+    //  NHÓM PROMOTIONS (KHUYẾN MÃI)
+    Route::get('/promotions', [AdminPromotionController::class, 'index']);
+    Route::post('/promotions', [AdminPromotionController::class, 'store']);
+    Route::get('/promotions/{id}', [AdminPromotionController::class, 'show']);
+    Route::delete('/promotions/{id}', [AdminPromotionController::class, 'destroy']);
+    
+    // Route đặc biệt: Thêm sản phẩm vào KM
+    Route::post('/promotions/{id}/add-products', [AdminPromotionController::class, 'addProducts']);
+});
 
 // Nhóm Route dành cho ADMIN
 Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
