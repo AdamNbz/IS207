@@ -2,10 +2,9 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation"; // 1. Import useRouter
 
 // Single-file Admin UI for Next.js (app/admin/page.tsx)
-// - TailwindCSS required in project
-// - Put this file at: src/app/admin/page.tsx
 
 type Product = {
   id: string;
@@ -17,6 +16,7 @@ type Product = {
 };
 
 export default function AdminPage() {
+  const router = useRouter(); // 2. Khởi tạo router
   const [view, setView] = useState<"dashboard" | "products" | "orders" | "users">("dashboard");
   const [query, setQuery] = useState("");
   const [products, setProducts] = useState<Product[]>([
@@ -48,6 +48,13 @@ export default function AdminPage() {
     setProducts(prev => prev.filter(p => p.id !== id));
   }
 
+  // Hàm xử lý đăng xuất
+  const handleLogout = () => {
+    // Nếu bạn có dùng AppContext thì gọi logout() ở đây
+    // Còn ở file này đơn giản là chuyển hướng về trang chủ
+    router.push("/"); 
+  }
+
   return (
     <div className="min-h-screen flex bg-gray-100 text-gray-800">
       {/* Sidebar */}
@@ -69,7 +76,13 @@ export default function AdminPage() {
 
         <div className="px-4 py-4 border-t text-xs text-gray-500">
           <div>Admin: <span className="font-medium">admin@lapstore.vn</span></div>
-          <button className="mt-2 text-left text-red-600 hover:underline">Đăng xuất</button>
+          {/* 3. Gắn sự kiện click vào nút Đăng xuất */}
+          <button 
+            onClick={handleLogout}
+            className="mt-2 text-left text-red-600 hover:underline w-full"
+          >
+            Đăng xuất
+          </button>
         </div>
       </aside>
 

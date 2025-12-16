@@ -46,7 +46,7 @@ const FeaturedProduct = () => {
                 {description}
               </p>
               <button className="flex items-center gap-1.5 bg-orange-600 px-4 py-2 rounded">
-                Buy now
+                Mua ngay
                 <Image
                   className="h-3 w-3"
                   src="/images/redirect_icon.svg"
