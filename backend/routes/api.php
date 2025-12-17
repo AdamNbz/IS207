@@ -7,6 +7,18 @@ use App\Http\Controllers\Api\BrandController;
 use App\Http\Controllers\Api\Admin\ProductController as AdminProductController;
 use Illuminate\Support\Facades\Route;
 
+use App\Http\Controllers\Api\CheckoutController;
+use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\ReviewController;
+Route::get('/get-token-khach', function () {
+    // Tìm đích danh ông khách
+    $user = App\Models\User::where('name', 'nguyễn văn khách')->first(); 
+    
+    // Cấp vé luôn không cần hỏi password
+    $token = $user->createToken('test-token')->plainTextToken;
+
+    return ['token' => $token];
+});
 // Bên ngoài Middleware Sanctum là PUBLIC ROUTES (Các API không cần đăng nhập để ở đây)
 Route::get('/test', function() {
     return response()->json(['message' => 'Backend is running!', 'time' => now()]);
@@ -39,4 +51,20 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/products/{id}', [AdminProductController::class, 'destroy']);
         Route::delete('/products/images/{imageId}', [AdminProductController::class, 'deleteImage']);
     });
+});
+    Route::put('/cart/update', [CartController::class, 'update']);
+    Route::delete('/cart/remove/{productId}', [CartController::class, 'removeFromCart']);
+
+    // TƯơng tác
+    Route::post('/addresses', [AuthController::class, 'addAddresses']);
+
+    // 1. Nhóm Checkout (Dùng CheckoutController)
+    Route::post('/checkout', [CheckoutController::class, 'checkout']);
+
+    // 2. Nhóm Order (Dùng OrderController)
+    Route::get('/orders', [OrderController::class, 'index']);        // Xem lịch sử
+    Route::get('/orders/{id}', [OrderController::class, 'show']);    // Xem chi tiết
+    Route::post('/orders/cancel/{id}', [OrderController::class, 'cancel']); // Hủy đơn
+    // 3. Nhóm Review (Dùng ReviewController)
+    Route::post('/reviews', [ReviewController::class, 'store']);
 });
