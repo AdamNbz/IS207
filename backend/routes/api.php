@@ -51,7 +51,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/products/{id}', [AdminProductController::class, 'destroy']);
         Route::delete('/products/images/{imageId}', [AdminProductController::class, 'deleteImage']);
     });
-});
     Route::put('/cart/update', [CartController::class, 'update']);
     Route::delete('/cart/remove/{productId}', [CartController::class, 'removeFromCart']);
 
