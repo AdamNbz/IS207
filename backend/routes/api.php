@@ -2,13 +2,54 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CartController;
 
+use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\BrandController;
+use App\Http\Controllers\Api\Admin\ProductController as AdminProductController;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Api\CheckoutController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\ReviewController;
+use App\Http\Controllers\Api\Admin\AdminOrderController;
+use App\Http\Controllers\Api\Admin\AdminPromotionController;
+use App\Http\Controllers\Api\UserPromotionController;
+
+Route::get('/get-token-admin', function () {
+    // 1. Tìm user tên là 'admin shop'
+    $admin = App\Models\User::where('name', 'Admin Shop')->first(); 
+    
+    if (!$admin) {
+        return response()->json(['message' => 'Không tìm thấy user admin shop'], 404);
+    }
+
+    // 2. Cấp vé (Token)
+    $token = $admin->createToken('admin-token')->plainTextToken;
+
+    return ['token' => $token];
+});
+
+Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
+    
+    //  NHÓM PROMOTIONS (KHUYẾN MÃI)
+    Route::get('/promotions', [AdminPromotionController::class, 'index']);
+    Route::post('/promotions', [AdminPromotionController::class, 'store']);
+    Route::get('/promotions/{id}', [AdminPromotionController::class, 'show']);
+    Route::delete('/promotions/{id}', [AdminPromotionController::class, 'destroy']);
+    
+    // Route đặc biệt: Thêm sản phẩm vào KM
+    Route::post('/promotions/{id}/add-products', [AdminPromotionController::class, 'addProducts']);
+});
+
+// Nhóm Route dành cho ADMIN
+Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
+    
+    // Quản lý đơn hàng
+    Route::get('/orders', [AdminOrderController::class, 'index']); // Danh sách + Lọc
+    Route::get('/orders/{id}', [AdminOrderController::class, 'show']); // Chi tiết
+    Route::put('/orders/{id}/status', [AdminOrderController::class, 'updateStatus']); // Cập nhật trạng thái
+});
+
 Route::get('/get-token-khach', function () {
     // Tìm đích danh ông khách
     $user = App\Models\User::where('name', 'nguyễn văn khách')->first(); 
@@ -18,17 +59,23 @@ Route::get('/get-token-khach', function () {
 
     return ['token' => $token];
 });
+
+
 // Bên ngoài Middleware Sanctum là PUBLIC ROUTES (Các API không cần đăng nhập để ở đây)
+Route::get('/test', function() {
+    return response()->json(['message' => 'Backend is running!', 'time' => now()]);
+});
+
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/products', [ProductController::class, 'index']); // Xem sản phẩm
 Route::get('/products/{id}', [ProductController::class, 'show']); // Chi tiết sản phẩm
 Route::get('/categories', [CategoryController::class, 'index']); // Danh sách danh mục
 Route::get('/brands', [BrandController::class, 'index']); // Danh sách brands
+Route::get('/promotions/{id}/products', [UserPromotionController::class, 'getProducts']);
 
 // Bên trong Middleware Sanctum này là PRIVATE ROUTES (Phải có Token mới vào được)
 Route::middleware('auth:sanctum')->group(function () {
-
     // Auth
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'me']); // Lấy thông tin bản thân
@@ -36,6 +83,16 @@ Route::middleware('auth:sanctum')->group(function () {
     // Giỏ hàng
     Route::get('/cart', [CartController::class, 'index']);
     Route::post('/cart/add', [CartController::class, 'addToCart']);
+
+    // Admin routes (yêu cầu role admin)
+    Route::prefix('admin')->middleware('admin')->group(function () {
+        Route::get('/products', [AdminProductController::class, 'index']);
+        Route::post('/products', [AdminProductController::class, 'store']);
+        Route::get('/products/{id}', [AdminProductController::class, 'show']);
+        Route::put('/products/{id}', [AdminProductController::class, 'update']);
+        Route::delete('/products/{id}', [AdminProductController::class, 'destroy']);
+        Route::delete('/products/images/{imageId}', [AdminProductController::class, 'deleteImage']);
+    });
     Route::put('/cart/update', [CartController::class, 'update']);
     Route::delete('/cart/remove/{productId}', [CartController::class, 'removeFromCart']);
 
