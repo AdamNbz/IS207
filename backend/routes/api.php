@@ -51,4 +51,18 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/orders/cancel/{id}', [OrderController::class, 'cancel']); // Hủy đơn
     // 3. Nhóm Review (Dùng ReviewController)
     Route::post('/reviews', [ReviewController::class, 'store']);
+
+    Route::middleware(\App\Http\Middleware\IsAdmin::class)->prefix('admin')->group(function () {
+        Route::get('/stats/overview', [\App\Http\Controllers\Api\Admin\StatsController::class, 'overview']);
+        Route::get('/stats/revenue', [\App\Http\Controllers\Api\Admin\StatsController::class, 'revenue']);
+        Route::get('/stats/stock', [\App\Http\Controllers\Api\Admin\StatsController::class, 'stock']);
+        Route::get('/stats/products', [\App\Http\Controllers\Api\Admin\StatsController::class, 'products']);
+        Route::get('/stats/category', [\App\Http\Controllers\Api\Admin\StatsController::class, 'category']);
+        Route::get('/stats/low-stock', [\App\Http\Controllers\Api\Admin\StatsController::class, 'lowStock']);
+
+        Route::get('/users', [\App\Http\Controllers\Api\Admin\UserController::class, 'index']);
+        Route::put('/users/{id}/lock', [\App\Http\Controllers\Api\Admin\UserController::class, 'lock']);
+        Route::put('/users/{id}/promote', [\App\Http\Controllers\Api\Admin\UserController::class, 'promote']);
+        Route::put('/users/{id}/revoke', [\App\Http\Controllers\Api\Admin\UserController::class, 'revoke']);
+    });
 });
