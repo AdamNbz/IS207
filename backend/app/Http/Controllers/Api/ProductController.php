@@ -234,4 +234,16 @@ class ProductController extends Controller
 
         return response()->json($data);
     }
+
+    // Lấy giá giảm của sản phẩm
+    $products = Product::all();
+
+    foreach ($products as $product) {
+        // Tự động kiểm tra xem có khuyến mãi nào đang chạy không
+        $promo = $product->current_promotion; 
+        
+        if ($promo) {
+            echo "Sản phẩm này đang giảm: " . $promo->discount_percent . "%";
+        }
+    }
 }
