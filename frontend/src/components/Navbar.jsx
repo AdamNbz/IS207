@@ -7,7 +7,7 @@ import AuthModal from "./AuthModal";
 
 
 const Navbar = () => {
-  const { router } = useAppContext(); // chỉ lấy router
+  const { router, getCartCount } = useAppContext();
   const [searchQuery, setSearchQuery] = useState("");
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const handleSearch = (e) => {
@@ -98,7 +98,10 @@ const Navbar = () => {
         </div>
 
         {/* Cart Icon */}
-        <button className="relative flex items-center">
+        <button 
+          onClick={() => router.push('/cart')}
+          className="relative flex items-center"
+        >
           <Image
             src="/images/cart_icon.svg"
             alt="cart icon"
@@ -107,7 +110,7 @@ const Navbar = () => {
             height={24}
           />
           <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center">
-            3
+            {getCartCount()}
           </span>
         </button>
       </div>
@@ -125,7 +128,10 @@ const Navbar = () => {
           />
           Đăng nhập Đăng ký
         </button>
-        <button className="relative flex items-center">
+        <button 
+          onClick={() => router.push('/cart')}
+          className="relative flex items-center"
+        >
           <Image
             src="/images/cart_icon.svg"
             alt="cart icon"
@@ -134,7 +140,7 @@ const Navbar = () => {
             height={24}
           />
           <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center">
-            3
+            {getCartCount()}
           </span>
         </button>
       </div>
