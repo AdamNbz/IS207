@@ -33,7 +33,6 @@ class UserPromotionController extends Controller
             'promotion' => [
                 'id' => $promotion->id,
                 'name' => $promotion->name,
-                'description' => $promotion->description,
                 'start_date' => $promotion->start_date,
                 'end_date' => $promotion->end_date,
                 'discount_percent' => $promotion->discount_percent

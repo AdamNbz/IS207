@@ -53,7 +53,6 @@ class AdminPromotionController extends Controller
 
         $promotion = Promotion::create([
             'name' => $request->name,
-            'description' => $request->description,
             'discount_percent' => $request->discount_percent,
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
