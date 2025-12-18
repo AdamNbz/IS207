@@ -1,7 +1,7 @@
 // Utility functions for Admin Product API calls
 // Usage: import { adminProductAPI } from '@/lib/adminProductAPI'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001/api";
 
 /**
  * Get authentication token from localStorage
