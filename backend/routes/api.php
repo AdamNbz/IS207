@@ -1,4 +1,7 @@
 <?php
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CartController;
 
@@ -61,30 +64,42 @@ Route::get('/get-token-khach', function () {
 });
 
 
-// Bên ngoài Middleware Sanctum là PUBLIC ROUTES (Các API không cần đăng nhập để ở đây)
+// --- PUBLIC ROUTES ---
+
 Route::get('/test', function() {
     return response()->json(['message' => 'Backend is running!', 'time' => now()]);
 });
 
-Route::post('/register', [AuthController::class, 'register']);
+// Authentication
 Route::post('/login', [AuthController::class, 'login']);
-Route::get('/products', [ProductController::class, 'index']); // Xem sản phẩm
-Route::get('/products/{id}', [ProductController::class, 'show']); // Chi tiết sản phẩm
-Route::get('/categories', [CategoryController::class, 'index']); // Danh sách danh mục
-Route::get('/brands', [BrandController::class, 'index']); // Danh sách brands
+
+// Đăng ký & OTP
+Route::post('/send-register-otp', [AuthController::class, 'sendRegisterOtp']); // <-- MỚI: Gửi OTP đăng ký
+Route::post('/register', [AuthController::class, 'register']);                 // <-- CẬP NHẬT: Đăng ký kèm OTP
+
+// Quên mật khẩu & OTP
+Route::post('/send-otp', [AuthController::class, 'sendOtp']);         // Gửi OTP quên mật khẩu
+Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);     // Xác thực OTP
+Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+
+// Public Data
+Route::get('/products', [ProductController::class, 'index']);
+Route::get('/products/{id}', [ProductController::class, 'show']);
+Route::get('/categories', [CategoryController::class, 'index']);
+Route::get('/brands', [BrandController::class, 'index']);
 Route::get('/promotions/{id}/products', [UserPromotionController::class, 'getProducts']);
 
-// Bên trong Middleware Sanctum này là PRIVATE ROUTES (Phải có Token mới vào được)
+// --- PRIVATE ROUTES ---
 Route::middleware('auth:sanctum')->group(function () {
     // Auth
     Route::post('/logout', [AuthController::class, 'logout']);
-    Route::get('/user', [AuthController::class, 'me']); // Lấy thông tin bản thân
+    Route::get('/user', [AuthController::class, 'me']);
 
-    // Giỏ hàng
+    // Cart
     Route::get('/cart', [CartController::class, 'index']);
     Route::post('/cart/add', [CartController::class, 'addToCart']);
 
-    // Admin routes (yêu cầu role admin)
+    // Admin
     Route::prefix('admin')->middleware('admin')->group(function () {
         Route::get('/products', [AdminProductController::class, 'index']);
         Route::post('/products', [AdminProductController::class, 'store']);
