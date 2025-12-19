@@ -7,12 +7,14 @@ import Footer from "@/components/Footer";
 import Loading from "@/components/Loading";
 import ProductCard from "@/components/ProductCard";
 import { useParams, useRouter } from "next/navigation";
+import { useAppContext } from "@/context/AppContext";
 
 const API_URL = "http://127.0.0.1:8000/api";
 
 const Product = () => {
   const { id } = useParams();
   const router = useRouter();
+  const { addToCart } = useAppContext();
 
   const [mainImage, setMainImage] = useState(null);
   const [productData, setProductData] = useState(null);
@@ -147,7 +149,16 @@ const Product = () => {
 
             {/* Action Buttons */}
             <div className="flex items-center mt-6 gap-4">
-              <button onClick={() => alert("Thêm vào giỏ hàng")} className="w-full py-3.5 bg-gray-100 text-gray-800/80 hover:bg-gray-200 transition rounded" disabled={productData.stock === 0}>
+              <button
+                onClick={async () => {
+                  const idToAdd = productData.id || productData._id;
+                  const ok = await addToCart(idToAdd, 1);
+                  if (ok) alert("Đã thêm vào giỏ hàng");
+                  else alert("Thêm vào giỏ hàng thất bại");
+                }}
+                className="w-full py-3.5 bg-gray-100 text-gray-800/80 hover:bg-gray-200 transition rounded"
+                disabled={productData.stock === 0}
+              >
                 Thêm vào giỏ hàng
               </button>
               <button

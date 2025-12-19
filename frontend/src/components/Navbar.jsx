@@ -6,23 +6,27 @@ import Image from "next/image";
 import AuthModal from "./AuthModal";
 
 const Navbar = () => {
-  // --- SỬA LỖI Ở ĐÂY ---
-  // Lấy 'userData' thay vì 'user' để khớp với AppContext
-  const { router, userData, logout } = useAppContext(); 
-  
+  //const { router } = useAppContext(); // chỉ lấy router
   const [searchQuery, setSearchQuery] = useState("");
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // State cho menu mobile
-
+  const { router, getCartCount, userData, logout } = useAppContext();
   const handleSearch = (e) => {
     e.preventDefault();
     router.push(`/all-products?search=${searchQuery}`);
   };
 
   return (
-    <nav className="flex items-center justify-between px-6 md:px-16 lg:px-32 py-3 border-b border-gray-300 text-gray-700 bg-white relative">
-      {/* 1. Logo */}
-      <Image className="cursor-pointer w-28 md:w-32" onClick={() => router.push("/")} src="/images/logo.svg" alt="logo" width={128} height={32} />
+    <nav className="flex items-center justify-between px-6 md:px-16 lg:px-32 py-3 border-b border-gray-300 text-gray-700 fixed top-0 left-0 w-full z-50 bg-white">
+      {/* Logo */}
+      <Image
+        className="cursor-pointer w-28 md:w-32"
+        onClick={() => router.push("/")}
+        src="/images/logo.svg"
+        alt="logo"
+        width={128}
+        height={32}
+      />
 
       {/* 2. Links (Desktop) */}
       <div className="flex items-center gap-4 lg:gap-8 max-md:hidden">
@@ -62,6 +66,7 @@ const Navbar = () => {
         </form>
 
         {/* User Account Section */}
+        {/* 👉 SỬA: Logic kiểm tra đăng nhập bắt đầu từ đây */}
         <div className="flex items-center gap-2">
           <Image
             src="/images/user_icon.svg"
@@ -71,41 +76,55 @@ const Navbar = () => {
             className="flex-shrink-0"
           />
 
-          <div className="flex items-center gap-1 text-gray-700 text-sm font-medium">
-            {/* --- LOGIC HIỂN THỊ DESKTOP (Đã sửa biến userData) --- */}
-            {userData ? (
-              // Nếu ĐÃ đăng nhập
-              <div className="flex items-center gap-2">
-                <span className="text-orange-600 font-bold cursor-pointer" title={userData.email}>
-                  {userData.name}
-                </span>
-                <span className="text-gray-300">|</span>
-                <button 
-                  onClick={logout}
-                  className="hover:text-red-500 transition font-normal"
-                >
-                  Đăng xuất
-                </button>
-              </div>
-            ) : (
-              // Nếu CHƯA đăng nhập
-              <>
-                <button onClick={() => setIsAuthOpen(true)} className="hover:text-gray-900 transition">
-                  Đăng nhập
-                </button>
-                <span>|</span>
-                <button onClick={() => setIsAuthOpen(true)} className="hover:text-gray-900 transition">
-                  Đăng ký
-                </button>
+          <div className="flex items-center gap-1 text-gray-700 font-medium">
+              {userData ? (
+                // 👉 TRƯỜNG HỢP 1: Đã có userData (Đã đăng nhập) -> Hiện tên
+                <div className="flex items-center gap-3">
+                  <Link href="/account" className="text-base font-bold text-orange-600 hover:underline">
+                      {/* Hiện tên user, nếu user chưa có tên thì hiện email */}
+                      {userData.name || userData.email || "Tài khoản"}
+                  </Link>
+                  <span className="text-gray-300">|</span>
+                  {/* Nút đăng xuất nhỏ (nếu thích) */}
+                  <button onClick={logout} className="text-base text-gray-500 hover:text-red-500">Đăng xuất</button>
+                </div>
+              ) : (
+                // 👉 TRƯỜNG HỢP 2: Chưa đăng nhập -> Hiện nút cũ của bạn
+                <>
+              <button
+                onClick={() => setIsAuthOpen(true)}
+                // onClick={() => console.log("Đăng nhập")}
+                className="hover:text-gray-900 transition"
+              >
+                Đăng nhập
+              </button>
+              <span>|</span>
+              <button
+                onClick={() => setIsAuthOpen(true)}
+                // onClick={() => console.log("Đăng ký")}
+                className="hover:text-gray-900 transition"
+              >
+                Đăng ký
+              </button>
               </>
-            )}
+              )}
           </div>
         </div>
 
         {/* Cart Icon */}
-        <button className="relative flex items-center" onClick={() => router.push('/cart')}>
-          <Image src="/images/cart_icon.svg" alt="cart" className="w-6 h-6" width={24} height={24} />
-          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center">3</span>
+        <button 
+         onClick={() => router.push('/cart')} // 👈 THÊM DÒNG NÀY ĐỂ CHUYỂN TRANG
+         className="relative flex items-center">
+          <Image
+            src="/images/cart_icon.svg"
+            alt="cart icon"
+            className="w-6 h-6"
+            width={24}
+            height={24}
+          />
+          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center">
+              {getCartCount()}
+          </span>
         </button>
       </div>
 
@@ -116,16 +135,20 @@ const Navbar = () => {
           <Image src="/images/cart_icon.svg" alt="cart" className="w-6 h-6" width={24} height={24} />
           <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center">3</span>
         </button>
-
-        {/* Nút login nhanh mobile nếu chưa đăng nhập */}
-        {!userData && (
-          <button onClick={() => setIsAuthOpen(true)}>
-            <Image src="/images/user_icon.svg" alt="user" width={24} height={24} />
-          </button>
-        )}
-
-        {/* Nếu đã đăng nhập trên mobile, hiện Avatar hoặc nút logout tuỳ thiết kế, ở đây tạm ẩn menu hamburger */}
-        {userData && <span className="text-orange-600 font-bold text-sm">{userData.name}</span>}
+        <button
+         onClick={() => router.push('/cart')} // 👈 THÊM DÒNG NÀY ĐỂ CHUYỂN TRANG
+         className="relative flex items-center">
+          <Image
+            src="/images/cart_icon.svg"
+            alt="cart icon"
+            className="w-6 h-6"
+            width={24}
+            height={24}
+          />
+          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center">
+           {getCartCount()}
+          </span>
+        </button>
       </div>
 
       {/* Auth Modal */}

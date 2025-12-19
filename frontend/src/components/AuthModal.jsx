@@ -14,21 +14,17 @@ const AuthModal = ({ isOpen, onClose }) => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [timer, setTimer] = useState(60);
+  
 
   // Phân loại OTP: 'REGISTER' hay 'FORGOT'
   const [otpType, setOtpType] = useState("FORGOT");
-
-  // Form Data
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
   // OTP Logic
-  const [timer, setTimer] = useState(60);
+  //const [timer, setTimer] = useState(60);
   const [otp, setOtp] = useState("");
+  const [timer, setTimer] = useState(0);
 
   useEffect(() => {
     if (isOpen) {
@@ -90,7 +86,7 @@ const AuthModal = ({ isOpen, onClose }) => {
     }
 
     // Chọn API URL dựa trên loại hành động
-    const url = type === "REGISTER" ? "http://localhost:8001/api/send-register-otp" : "http://localhost:8001/api/send-otp";
+    const url = type === "REGISTER" ? "http://localhost:8000/api/send-register-otp" : "http://localhost:8000/api/send-otp";
 
     try {
       const res = await fetch(url, {
@@ -129,7 +125,7 @@ const AuthModal = ({ isOpen, onClose }) => {
     // A. Nếu là ĐĂNG KÝ -> Gọi API Register kèm OTP
     if (otpType === "REGISTER") {
       try {
-        const res = await fetch("http://localhost:8001/api/register", {
+        const res = await fetch("http://localhost:8000/api/register", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name, email, password, otp }),
@@ -151,7 +147,7 @@ const AuthModal = ({ isOpen, onClose }) => {
     // B. Nếu là QUÊN MẬT KHẨU -> Gọi API verify -> Chuyển sang Reset
     else {
       try {
-        const res = await fetch("http://localhost:8001/api/verify-otp", {
+        const res = await fetch("http://localhost:8000/api/verify-otp", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, otp }),
@@ -214,7 +210,7 @@ const AuthModal = ({ isOpen, onClose }) => {
       if (newPassword.length < 6) return showNotification("Mật khẩu quá ngắn!", "error");
 
       try {
-        const res = await fetch("http://localhost:8001/api/reset-password", {
+        const res = await fetch("http://localhost:8000/api/reset-password", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, otp, password: newPassword }),

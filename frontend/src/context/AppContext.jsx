@@ -18,6 +18,11 @@ export const AppContextProvider = (props) => {
   const [products, setProducts] = useState([]);
   const [userData, setUserData] = useState(false); // false = chưa đăng nhập
   const [cartItems, setCartItems] = useState({});
+  useEffect(() => {
+    fetchProductData();
+    // 👉 QUAN TRỌNG: Gọi hàm này để kiểm tra token trong LocalStorage và lấy thông tin user
+    fetchUserData(); 
+  }, []);
 
   // Lấy dữ liệu sản phẩm
   const fetchProductData = async () => {
@@ -26,7 +31,7 @@ export const AppContextProvider = (props) => {
 
   // --- MỚI THÊM: HÀM XỬ LÝ ĐĂNG NHẬP ---
   // Địa chỉ API backend
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001/api";
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
 
   // Đăng nhập
   const login = async (email, password) => {
@@ -40,6 +45,7 @@ export const AppContextProvider = (props) => {
       if (res.ok && data.access_token) {
         localStorage.setItem("access_token", data.access_token);
         setUserData(data.user);
+        await fetchCart(); // 👉 THÊM: Load giỏ hàng ngay
         return true;
       }
       return false;
@@ -84,6 +90,7 @@ export const AppContextProvider = (props) => {
       localStorage.removeItem("access_token");
     }
     setUserData(false);
+    setCartItems({});
     router.push("/");
   };
 
@@ -101,6 +108,8 @@ export const AppContextProvider = (props) => {
       if (res.ok) {
         const data = await res.json();
         setUserData(data);
+        // Sau khi fetch user thành công, đồng bộ giỏ hàng từ backend
+        await fetchCart();
       } else {
         setUserData(false);
         localStorage.removeItem("access_token");
@@ -111,6 +120,31 @@ export const AppContextProvider = (props) => {
     }
   };
 
+  // Lấy giỏ hàng từ backend và chuyển thành map { productId: quantity }
+  const fetchCart = async () => {
+    const token = localStorage.getItem("access_token");
+    if (!token) return;
+    try {
+      const res = await fetch(`${API_URL}/cart`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+
+      // CartController trả về object cart có key `items` hoặc trả về { items: [] }
+      const items = data.items || data.data?.items || (data.cart && data.cart.items) || [];
+      const map = {};
+      (items || []).forEach((it) => {
+        const pid = it.product_id || it.product?.id || it.product?._id || it.product?.product_id;
+        const qty = it.quantity || 0;
+        if (pid) map[pid] = qty;
+      });
+      setCartItems(map);
+    } catch (e) {
+      console.error("Failed to fetch cart:", e);
+    }
+  };
+
   // --- MỚI THÊM: HÀM ĐĂNG XUẤT ---
   useEffect(() => {
     fetchProductData();
@@ -118,14 +152,71 @@ export const AppContextProvider = (props) => {
   }, []);
 
   // Thêm sản phẩm vào giỏ hàng
-  const addToCart = async (itemId) => {
+  const addToCart = async (itemId, quantity = 1) => {
+    const token = localStorage.getItem("access_token");
+    // Nếu đã đăng nhập -> gọi API backend
+    if (token) {
+      try {
+        const res = await fetch(`${API_URL}/cart/add`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ product_id: itemId, quantity }),
+        });
+        if (res.ok) {
+          // Đồng bộ lại giỏ hàng từ server
+          await fetchCart();
+          return true;
+        }
+        return false;
+      } catch (e) {
+        console.error("addToCart error:", e);
+        return false;
+      }
+    }
+
+    // Nếu chưa đăng nhập -> cập nhật local state
     let cartData = structuredClone(cartItems);
-    cartData[itemId] = (cartData[itemId] || 0) + 1;
+    cartData[itemId] = (cartData[itemId] || 0) + quantity;
     setCartItems(cartData);
+    return true;
   };
 
   // Cập nhật số lượng trong giỏ
   const updateCartQuantity = async (itemId, quantity) => {
+    const token = localStorage.getItem("access_token");
+    if (token) {
+      try {
+        const res = await fetch(`${API_URL}/cart/update`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ product_id: itemId, quantity }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          // Nếu server trả về cart, đồng bộ lại
+          const cart = data.cart || data;
+          const items = cart.items || [];
+          const map = {};
+          items.forEach((it) => {
+            const pid = it.product_id || it.product?.id || it.product?._id;
+            const qty = it.quantity || 0;
+            if (pid) map[pid] = qty;
+          });
+          setCartItems(map);
+          return;
+        }
+      } catch (e) {
+        console.error("updateCartQuantity error:", e);
+      }
+    }
+
+    // Fallback local update
     let cartData = structuredClone(cartItems);
     if (quantity === 0) delete cartData[itemId];
     else cartData[itemId] = quantity;

@@ -25,7 +25,7 @@ type Product = {
   specs?: Array<{ id?: number; name: string; value: string }>;
 };
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
 
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -149,7 +149,7 @@ export default function AdminPage() {
         // Only prepend localhost if thumbnail is a relative path
         let thumbnailUrl = item.thumbnail;
         if (thumbnailUrl && !thumbnailUrl.startsWith("http://") && !thumbnailUrl.startsWith("https://")) {
-          thumbnailUrl = `http://localhost:8001${thumbnailUrl}`;
+          thumbnailUrl = `http://localhost:8000${thumbnailUrl}`;
         }
 
         const isActive = item.is_active === 1 || item.is_active === true || item.is_active === "1" ? true : false;
@@ -331,7 +331,7 @@ export default function AdminPage() {
         images:
           data.images?.map((img: any) => ({
             id: img.id,
-            url: img.image_url?.startsWith("http") ? img.image_url : `http://localhost:8001${img.image_url}`,
+            url: img.image_url?.startsWith("http") ? img.image_url : `http://localhost:8000${img.image_url}`,
             order: img.display_order || 0,
           })) || [],
         specs: data.specs || [],
