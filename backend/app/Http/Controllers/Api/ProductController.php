@@ -236,14 +236,13 @@ class ProductController extends Controller
     }
 
     // Lấy giá giảm của sản phẩm
-    $products = Product::all();
+    // $products = Product::all();
 
-    foreach ($products as $product) {
-        // Tự động kiểm tra xem có khuyến mãi nào đang chạy không
-        $promo = $product->current_promotion; 
-        
-        if ($promo) {
-            echo "Sản phẩm này đang giảm: " . $promo->discount_percent . "%";
-        }
-    }
+    // foreach ($products as $product) {
+    //     // Tự động kiểm tra xem có khuyến mãi nào đang chạy không
+    //     $promo = $product->current_promotion;    
+    //     if ($promo) {
+    //         echo "Sản phẩm này đang giảm: " . $promo->discount_percent . "%";
+    //     }
+    // }
 }

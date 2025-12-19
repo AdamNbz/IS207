@@ -6,18 +6,18 @@ import Image from "next/image";
 import AuthModal from "./AuthModal";
 
 const Navbar = () => {
-  const { router } = useAppContext(); // chỉ lấy router
+  //const { router } = useAppContext(); // chỉ lấy router
   const [searchQuery, setSearchQuery] = useState("");
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // State cho menu mobile
-
+  const { router, getCartCount, userData, logout } = useAppContext();
   const handleSearch = (e) => {
     e.preventDefault();
     router.push(`/all-products?search=${searchQuery}`);
   };
 
   return (
-    <nav className="flex items-center justify-between px-6 md:px-16 lg:px-32 py-3 border-b border-gray-300 text-gray-700">
+    <nav className="flex items-center justify-between px-6 md:px-16 lg:px-32 py-3 border-b border-gray-300 text-gray-700 fixed top-0 left-0 w-full z-50 bg-white">
       {/* Logo */}
       <Image
         className="cursor-pointer w-28 md:w-32"
@@ -68,6 +68,7 @@ const Navbar = () => {
         </form>
 
         {/* User Account Section */}
+        {/* 👉 SỬA: Logic kiểm tra đăng nhập bắt đầu từ đây */}
         <div className="flex items-center gap-2">
           {/* User Icon */}
           <Image
@@ -78,27 +79,45 @@ const Navbar = () => {
             className="flex-shrink-0"
           />
 
-          <div className="flex items-center gap-1 text-gray-700 text-sm font-medium">
-            <button
-              onClick={() => setIsAuthOpen(true)}
-              // onClick={() => console.log("Đăng nhập")}
-              className="hover:text-gray-900 transition"
-            >
-              Đăng nhập
-            </button>
-            <span>|</span>
-            <button
-              onClick={() => setIsAuthOpen(true)}
-              // onClick={() => console.log("Đăng ký")}
-              className="hover:text-gray-900 transition"
-            >
-              Đăng ký
-            </button>
+          <div className="flex items-center gap-1 text-gray-700 font-medium">
+              {userData ? (
+                // 👉 TRƯỜNG HỢP 1: Đã có userData (Đã đăng nhập) -> Hiện tên
+                <div className="flex items-center gap-3">
+                  <Link href="/account" className="text-base font-bold text-orange-600 hover:underline">
+                      {/* Hiện tên user, nếu user chưa có tên thì hiện email */}
+                      {userData.name || userData.email || "Tài khoản"}
+                  </Link>
+                  <span className="text-gray-300">|</span>
+                  {/* Nút đăng xuất nhỏ (nếu thích) */}
+                  <button onClick={logout} className="text-base text-gray-500 hover:text-red-500">Đăng xuất</button>
+                </div>
+              ) : (
+                // 👉 TRƯỜNG HỢP 2: Chưa đăng nhập -> Hiện nút cũ của bạn
+                <>
+              <button
+                onClick={() => setIsAuthOpen(true)}
+                // onClick={() => console.log("Đăng nhập")}
+                className="hover:text-gray-900 transition"
+              >
+                Đăng nhập
+              </button>
+              <span>|</span>
+              <button
+                onClick={() => setIsAuthOpen(true)}
+                // onClick={() => console.log("Đăng ký")}
+                className="hover:text-gray-900 transition"
+              >
+                Đăng ký
+              </button>
+              </>
+              )}
           </div>
         </div>
 
         {/* Cart Icon */}
-        <button className="relative flex items-center">
+        <button 
+         onClick={() => router.push('/cart')} // 👈 THÊM DÒNG NÀY ĐỂ CHUYỂN TRANG
+         className="relative flex items-center">
           <Image
             src="/images/cart_icon.svg"
             alt="cart icon"
@@ -107,7 +126,7 @@ const Navbar = () => {
             height={24}
           />
           <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center">
-            3
+              {getCartCount()}
           </span>
         </button>
       </div>
@@ -125,7 +144,9 @@ const Navbar = () => {
           />
           Đăng nhập Đăng ký
         </button>
-        <button className="relative flex items-center">
+        <button
+         onClick={() => router.push('/cart')} // 👈 THÊM DÒNG NÀY ĐỂ CHUYỂN TRANG
+         className="relative flex items-center">
           <Image
             src="/images/cart_icon.svg"
             alt="cart icon"
@@ -134,7 +155,7 @@ const Navbar = () => {
             height={24}
           />
           <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center">
-            3
+           {getCartCount()}
           </span>
         </button>
       </div>
