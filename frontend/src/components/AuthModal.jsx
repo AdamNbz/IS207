@@ -1,9 +1,9 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useAppContext } from "../context/AppContext";
-import Image from "next/image";
-// 1. IMPORT TOAST
-import { toast } from "react-toastify"; 
+// import Image from "next/image";
+// // 1. IMPORT TOAST
+// import { toast } from "react-toastify"; 
 
 const AuthModal = ({ isOpen, onClose }) => {
   const { login } = useAppContext(); // Không cần dùng hàm register của context nữa vì ta tự gọi API
