@@ -4,10 +4,17 @@ import axios from "axios";
 import ProductCard from "@/components/ProductCard";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+// 1. IMPORT HOOK ĐỂ LẤY THAM SỐ TỪ URL
+import { useSearchParams } from "next/navigation"; 
 
 const API_URL = "http://127.0.0.1:8000/api";
 
 const AllProducts = () => {
+  // 2. KHỞI TẠO BIẾN searchParams
+  const searchParams = useSearchParams();
+  // Lấy từ khóa tìm kiếm từ URL (ví dụ: ?search=macbook -> searchQuery = "macbook")
+  const searchQuery = searchParams.get("search"); 
+
   // DATA STATES
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -18,14 +25,17 @@ const AllProducts = () => {
   const [categorySlug, setCategorySlug] = useState("all");
   const [brandSlug, setBrandSlug] = useState("all");
   const [sort, setSort] = useState("default");
-  const [priceRange, setPriceRange] = useState([0, 100000000]); // 0 - 100tr
-  const [priceOption, setPriceOption] = useState("all"); // control UI selection
+  const [priceRange, setPriceRange] = useState([0, 100000000]); 
+  const [priceOption, setPriceOption] = useState("all"); 
 
-  // Fetch categories & brands (chỉ 1 lần khi mount)
+  // Fetch categories & brands
   useEffect(() => {
     const fetchFilters = async () => {
       try {
-        const [catRes, brandRes] = await Promise.all([axios.get(`${API_URL}/categories`), axios.get(`${API_URL}/brands`)]);
+        const [catRes, brandRes] = await Promise.all([
+          axios.get(`${API_URL}/categories`), 
+          axios.get(`${API_URL}/brands`)
+        ]);
         setCategories(catRes.data.data || []);
         setBrands(brandRes.data.data || []);
       } catch (error) {
@@ -35,25 +45,30 @@ const AllProducts = () => {
     fetchFilters();
   }, []);
 
-  // Fetch products mỗi khi filter thay đổi
+  // Fetch products mỗi khi filter HOẶC search thay đổi
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
       try {
         const params = new URLSearchParams();
 
+        // 3. GỬI THAM SỐ SEARCH XUỐNG API (QUAN TRỌNG)
+        if (searchQuery) {
+            params.append("search", searchQuery);
+        }
+
         if (categorySlug !== "all") params.append("category", categorySlug);
         if (brandSlug !== "all") params.append("brand", brandSlug);
-        // Always send both min and max to avoid backend defaults
+        
         params.append("min_price", priceRange[0].toString());
         params.append("max_price", priceRange[1].toString());
 
-        // Sort mapping
         if (sort === "price-asc") params.append("sort", "price_asc");
         if (sort === "price-desc") params.append("sort", "price_desc");
 
         const url = `${API_URL}/products?${params.toString()}`;
-        console.log("Fetching products:", url);
+        console.log("Fetching products with URL:", url); // Xem log để kiểm tra link API
+        
         const res = await axios.get(url);
         setProducts(res.data.data || []);
       } catch (error) {
@@ -63,7 +78,7 @@ const AllProducts = () => {
       }
     };
     fetchProducts();
-  }, [categorySlug, brandSlug, priceRange, sort]);
+  }, [categorySlug, brandSlug, priceRange, sort, searchQuery]); // 4. THÊM searchQuery VÀO DEPENDENCY ARRAY
 
   return (
     <>
@@ -72,7 +87,10 @@ const AllProducts = () => {
       <div className="px-6 md:px-16 lg:px-32 pt-10">
         {/* TITLE */}
         <div className="flex flex-col items-end">
-          <p className="text-2xl font-semibold">Tất cả sản phẩm</p>
+          <p className="text-2xl font-semibold">
+            {/* Hiển thị tiêu đề linh hoạt */}
+            {searchQuery ? `Kết quả tìm kiếm: "${searchQuery}"` : "Tất cả sản phẩm"}
+          </p>
           <div className="w-16 h-0.5 bg-orange-600 rounded-full"></div>
         </div>
 
@@ -87,9 +105,7 @@ const AllProducts = () => {
               <select value={categorySlug} onChange={(e) => setCategorySlug(e.target.value)} className="w-full border rounded-lg p-2 mt-1">
                 <option value="all">Tất cả</option>
                 {categories.map((c: any) => (
-                  <option key={c.id} value={c.slug}>
-                    {c.name}
-                  </option>
+                  <option key={c.id} value={c.slug}>{c.name}</option>
                 ))}
               </select>
             </div>
@@ -100,9 +116,7 @@ const AllProducts = () => {
               <select value={brandSlug} onChange={(e) => setBrandSlug(e.target.value)} className="w-full border rounded-lg p-2 mt-1">
                 <option value="all">Tất cả</option>
                 {brands.map((b: any) => (
-                  <option key={b.id} value={b.slug}>
-                    {b.name}
-                  </option>
+                  <option key={b.id} value={b.slug}>{b.name}</option>
                 ))}
               </select>
             </div>
@@ -153,7 +167,22 @@ const AllProducts = () => {
               <ProductCard key={product.id} product={product} />
             ))}
 
-            {products.length === 0 && <p className="text-center col-span-full text-gray-500">Không có sản phẩm nào phù hợp với bộ lọc.</p>}
+            {products.length === 0 && (
+                <div className="col-span-full text-center py-10">
+                    <p className="text-gray-500 text-lg">
+                        Không tìm thấy sản phẩm nào phù hợp{searchQuery ? ` với từ khóa "${searchQuery}"` : ""}.
+                    </p>
+                    {/* Nút reset tìm kiếm */}
+                    {searchQuery && (
+                        <button 
+                            onClick={() => window.location.href = '/all-products'}
+                            className="mt-4 text-orange-600 underline hover:text-orange-800"
+                        >
+                            Xem tất cả sản phẩm
+                        </button>
+                    )}
+                </div>
+            )}
           </div>
         )}
       </div>
