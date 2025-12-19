@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import OrderManagement from "@/components/admin/OrderManagement";
 
 // Single-file Admin UI for Next.js (app/admin/page.tsx)
 // - TailwindCSS required in project
@@ -25,7 +26,7 @@ type Product = {
   specs?: Array<{ id?: number; name: string; value: string }>;
 };
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001/api";
 
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -501,7 +502,7 @@ export default function AdminPage() {
           </div>
         )}
 
-        {view === "orders" && <div className="bg-white p-6 rounded-lg shadow">Đơn hàng — (demo) chưa kết nối backend</div>}
+        {view === "orders" && <OrderManagement />}
 
         {view === "users" && <div className="bg-white p-6 rounded-lg shadow">Người dùng — (demo) chưa kết nối backend</div>}
       </main>
