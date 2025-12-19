@@ -24,7 +24,24 @@ type Product = {
   images?: Array<{ id: number; url: string; order: number }>;
   specs?: Array<{ id?: number; name: string; value: string }>;
 };
+type DashboardStats = {
+  total_revenue: number;
+  total_orders: number;
+  total_customers: number;
+  total_products: number;
+};
 
+type TopProduct = {
+  product_id: number;
+  name: string;
+  sold_count: number;
+};
+
+type LowStockProduct = {
+  id: number;
+  name: string;
+  stock: number;
+};
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
 
 export default function AdminPage() {
@@ -43,6 +60,9 @@ export default function AdminPage() {
   const [selected, setSelected] = useState<Product | null>(null);
   const [showForm, setShowForm] = useState(false);
 
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [topProducts, setTopProducts] = useState<TopProduct[]>([]);
+  const [lowStock, setLowStock] = useState<LowStockProduct[]>([]);
   // Check authentication on mount - MUST be before any conditional returns
   useEffect(() => {
     const token = localStorage.getItem("admin_token");
@@ -56,6 +76,7 @@ export default function AdminPage() {
     if (view === "products" && isAuthenticated) {
       fetchProducts();
     }
+    if (view === "dashboard") fetchDashboardData();
   }, [view, isAuthenticated]);
 
   // Login function
@@ -121,6 +142,39 @@ export default function AdminPage() {
         </div>
       </div>
     );
+  }
+  async function fetchDashboardData() {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("admin_token");
+      const headers = { Authorization: `Bearer ${token}`, Accept: "application/json" };
+
+      // Gọi API Overview (Tổng quan)
+      // Route tương ứng Laravel: Route::get('/admin/stats/overview', ...)
+      const resStats = await fetch(`${API_BASE}/admin/stats/overview`, { headers });
+      if (resStats.ok) setStats(await resStats.json());
+
+      // Gọi API Top Products (Sản phẩm bán chạy)
+      // Route tương ứng Laravel: Route::get('/admin/stats/products', ...)
+      const resTop = await fetch(`${API_BASE}/admin/stats/products`, { headers });
+      if (resTop.ok) {
+        const json = await resTop.json();
+        setTopProducts(json.data || []);
+      }
+
+      // Gọi API Low Stock (Sắp hết hàng)
+      // Route tương ứng Laravel: Route::get('/admin/stats/low-stock', ...)
+      const resLow = await fetch(`${API_BASE}/admin/stats/lowStock`, { headers });
+      if (resLow.ok) {
+        const json = await resLow.json();
+        setLowStock(json.data || []);
+      }
+
+    } catch (err) {
+      console.error("Lỗi tải thống kê:", err);
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function fetchProducts() {
@@ -433,7 +487,14 @@ export default function AdminPage() {
         </div>
 
         {/* Content by view */}
-        {view === "dashboard" && <Dashboard products={products} />}
+       {view === "dashboard" && (
+  <Dashboard 
+    stats={stats} 
+    topProducts={topProducts} 
+    lowStock={lowStock} 
+    loading={loading} 
+    />
+  )}
 
         {view === "products" && (
           <div className="space-y-6">
@@ -548,31 +609,123 @@ function SideItem({ children, active, onClick }: { children: React.ReactNode; ac
     </button>
   );
 }
-
-function StatCard({ title, value }: { title: string; value: string }) {
+function StatCard({ title, value, icon, color }: any) {
   return (
-    <div className="bg-white p-4 rounded-lg shadow flex items-center justify-between">
+    <div className="bg-white p-5 rounded-lg shadow border border-gray-100 flex items-center justify-between">
       <div>
-        <div className="text-sm text-gray-500">{title}</div>
-        <div className="text-xl font-bold mt-1">{value}</div>
+        <div className="text-sm text-gray-500 font-medium">{title}</div>
+        <div className="text-2xl font-bold mt-1 text-gray-800">{value}</div>
       </div>
-      <div className="text-3xl text-gray-200">📦</div>
+      <div className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl ${color}`}>
+        {icon}
+      </div>
     </div>
   );
 }
 
-function Dashboard({ products }: { products: Product[] }) {
-  const totalStock = products.reduce((s, p) => s + p.stock, 0);
-  const totalValue = products.reduce((s, p) => s + p.price * p.stock, 0);
+function Dashboard({ 
+  stats, 
+  topProducts, 
+  lowStock,
+  loading 
+}: { 
+  stats: DashboardStats | null; 
+  topProducts: TopProduct[];
+  lowStock: LowStockProduct[];
+  loading: boolean;
+}) {
+  if (loading && !stats) return <div className="p-8 text-center text-gray-500">Đang tải dữ liệu kinh doanh...</div>;
+
+  // Helper format tiền tệ
+  const formatMoney = (amount: number) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <StatCard title="Số sản phẩm" value={products.length.toString()} />
-        <StatCard title="Tổng tồn kho" value={totalStock.toString()} />
-        <StatCard title="Giá trị kho" value={totalValue.toLocaleString("vi-VN") + "₫"} />
+      {/* Hàng 1: Các thẻ thống kê tổng quan */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatCard 
+          title="Doanh thu" 
+          value={stats ? formatMoney(stats.total_revenue) : "0 ₫"} 
+          icon="💰" 
+          color="bg-green-100 text-green-600"
+        />
+        <StatCard 
+          title="Đơn hàng" 
+          value={stats?.total_orders.toString() || "0"} 
+          icon="🛒" 
+          color="bg-blue-100 text-blue-600"
+        />
+        <StatCard 
+          title="Khách hàng" 
+          value={stats?.total_customers.toString() || "0"} 
+          icon="👥" 
+          color="bg-purple-100 text-purple-600"
+        />
+        <StatCard 
+          title="Sản phẩm" 
+          value={stats?.total_products.toString() || "0"} 
+          icon="📦" 
+          color="bg-orange-100 text-orange-600"
+        />
       </div>
 
-      <div className="bg-white p-6 rounded-lg shadow">Thống kê (placeholder) — chèn chart ở đây</div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Cột 1: Top sản phẩm bán chạy */}
+        <div className="bg-white p-6 rounded-lg shadow border border-gray-100">
+          <h3 className="text-lg font-bold mb-4 text-gray-800">🏆 Top 10 Bán Chạy</h3>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left">
+              <thead className="bg-gray-50 text-gray-600 font-medium">
+                <tr>
+                  <th className="px-4 py-2">Sản phẩm</th>
+                  <th className="px-4 py-2 text-right">Đã bán</th>
+                </tr>
+              </thead>
+              <tbody>
+                {topProducts.length === 0 ? (
+                  <tr><td colSpan={2} className="p-4 text-center text-gray-400">Chưa có dữ liệu</td></tr>
+                ) : (
+                  topProducts.map((p) => (
+                    <tr key={p.product_id} className="border-b last:border-0 hover:bg-gray-50">
+                      <td className="px-4 py-3 font-medium text-gray-700 truncate max-w-[200px]" title={p.name}>{p.name}</td>
+                      <td className="px-4 py-3 text-right font-bold">{p.sold_count}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Cột 2: Cảnh báo sắp hết hàng */}
+        <div className="bg-white p-6 rounded-lg shadow border border-gray-100">
+          <h3 className="text-lg font-bold mb-4 text-red-600 flex items-center gap-2">
+            ⚠️ Sắp hết hàng (≤ 5)
+          </h3>
+          <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
+            <table className="w-full text-sm text-left">
+              <thead className="bg-red-50 text-red-700 font-medium">
+                <tr>
+                  <th className="px-4 py-2">Sản phẩm</th>
+                  <th className="px-4 py-2 text-right">Kho</th>
+                </tr>
+              </thead>
+              <tbody>
+                {lowStock.length === 0 ? (
+                  <tr><td colSpan={2} className="p-4 text-center text-green-600">Kho hàng ổn định</td></tr>
+                ) : (
+                  lowStock.map((p) => (
+                    <tr key={p.id} className="border-b last:border-0 hover:bg-red-50">
+                      <td className="px-4 py-3 text-gray-700 truncate max-w-[200px]">{p.name}</td>
+                      <td className="px-4 py-3 text-right font-bold text-red-600">{p.stock}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
