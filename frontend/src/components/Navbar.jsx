@@ -9,8 +9,15 @@ const Navbar = () => {
   //const { router } = useAppContext(); // chỉ lấy router
   const [searchQuery, setSearchQuery] = useState("");
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [authMode, setAuthMode] = useState("Login"); // "Login" hoặc "Register"
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // State cho menu mobile
   const { router, getCartCount, userData, logout } = useAppContext();
+
+  // Hàm mở modal với mode tương ứng
+  const openAuthModal = (mode) => {
+    setAuthMode(mode);
+    setIsAuthOpen(true);
+  };
   const handleSearch = (e) => {
     e.preventDefault();
     router.push(`/all-products?search=${searchQuery}`);
@@ -92,16 +99,14 @@ const Navbar = () => {
                 // 👉 TRƯỜNG HỢP 2: Chưa đăng nhập -> Hiện nút cũ của bạn
                 <>
               <button
-                onClick={() => setIsAuthOpen(true)}
-                // onClick={() => console.log("Đăng nhập")}
+                onClick={() => openAuthModal("Login")}
                 className="hover:text-gray-900 transition"
               >
                 Đăng nhập
               </button>
               <span>|</span>
               <button
-                onClick={() => setIsAuthOpen(true)}
-                // onClick={() => console.log("Đăng ký")}
+                onClick={() => openAuthModal("Register")}
                 className="hover:text-gray-900 transition"
               >
                 Đăng ký
@@ -152,7 +157,7 @@ const Navbar = () => {
       </div>
 
       {/* Auth Modal */}
-      <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
+      <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} initialMode={authMode} />
     </nav>
   );
 };

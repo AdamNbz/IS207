@@ -5,11 +5,11 @@ import { useAppContext } from "../context/AppContext";
 // // 1. IMPORT TOAST
 // import { toast } from "react-toastify"; 
 
-const AuthModal = ({ isOpen, onClose }) => {
+const AuthModal = ({ isOpen, onClose, initialMode = "Login" }) => {
   const { login } = useAppContext(); // Không cần dùng hàm register của context nữa vì ta tự gọi API
 
   // State màn hình
-  const [authState, setAuthState] = useState("Login");
+  const [authState, setAuthState] = useState(initialMode);
   const [show, setShow] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -29,7 +29,7 @@ const AuthModal = ({ isOpen, onClose }) => {
   useEffect(() => {
     if (isOpen) {
       setTimeout(() => setShow(true), 10);
-      setAuthState("Login");
+      setAuthState(initialMode); // Sử dụng initialMode thay vì hardcode "Login"
       // Reset form
       setEmail("");
       setPassword("");
@@ -40,7 +40,7 @@ const AuthModal = ({ isOpen, onClose }) => {
     } else {
       setShow(false);
     }
-  }, [isOpen]);
+  }, [isOpen, initialMode]);
 
   useEffect(() => {
     let interval;

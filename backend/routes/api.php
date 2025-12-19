@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\Admin\AdminOrderController;
 use App\Http\Controllers\Api\Admin\AdminPromotionController;
 use App\Http\Controllers\Api\UserPromotionController;
+use App\Http\Controllers\Api\Admin\StatsController;
 
 Route::get('/get-token-admin', function () {
     // 1. Tìm user tên là 'admin shop'
@@ -62,7 +63,14 @@ Route::get('/get-token-khach', function () {
     return ['token' => $token];
 });
 
-
+Route::middleware(['auth:sanctum'])->group(function () {
+    // ... các route khác
+    
+    // Route cho thống kê
+    Route::get('/admin/stats/overview', [StatsController::class, 'overview']);
+    Route::get('/admin/stats/products', [StatsController::class, 'products']);
+    Route::get('/admin/stats/lowStock', [StatsController::class, 'lowStock']);
+});
 // --- PUBLIC ROUTES ---
 
 Route::get('/test', function() {

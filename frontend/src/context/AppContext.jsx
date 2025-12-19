@@ -1,7 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, useState } from "react";
-import productsData from "@/data/product";
 
 // Tạo context
 export const AppContext = createContext();
@@ -15,7 +14,11 @@ export const AppContextProvider = (props) => {
   const currency = process.env.NEXT_PUBLIC_CURRENCY || "VNĐ";
   const router = useRouter();
 
+  // Địa chỉ API backend
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+
   const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [userData, setUserData] = useState(false); // false = chưa đăng nhập
   const [cartItems, setCartItems] = useState({});
   useEffect(() => {
@@ -24,14 +27,78 @@ export const AppContextProvider = (props) => {
     fetchUserData(); 
   }, []);
 
-  // Lấy dữ liệu sản phẩm
-  const fetchProductData = async () => {
-    setProducts(productsData);
+  // Lấy dữ liệu sản phẩm từ API backend
+  const fetchProductData = async (filters = {}) => {
+    setLoading(true);
+    try {
+      // Xây dựng query string từ filters
+      const params = new URLSearchParams();
+      
+      if (filters.brand) params.append('brand', filters.brand);
+      if (filters.category) params.append('category', filters.category);
+      if (filters.category_id) params.append('category_id', filters.category_id);
+      if (filters.min_price) params.append('min_price', filters.min_price);
+      if (filters.max_price) params.append('max_price', filters.max_price);
+      if (filters.ram) params.append('ram', filters.ram);
+      if (filters.cpu) params.append('cpu', filters.cpu);
+      if (filters.search) params.append('search', filters.search);
+      if (filters.sort) params.append('sort', filters.sort);
+      if (filters.per_page) params.append('per_page', filters.per_page);
+      if (filters.in_stock) params.append('in_stock', filters.in_stock);
+
+      const queryString = params.toString();
+      const url = `${API_URL}/products${queryString ? `?${queryString}` : ''}`;
+      
+      const res = await fetch(url);
+      
+      if (res.ok) {
+        const data = await res.json();
+        // API trả về dạng paginate, lấy data từ field 'data'
+        const productList = data.data || data;
+        
+        // Chuẩn hóa dữ liệu để tương thích với frontend hiện tại
+        const normalizedProducts = productList.map(product => ({
+          _id: product.id?.toString(),
+          id: product.id,
+          name: product.name,
+          slug: product.slug,
+          description: product.description || '',
+          category: product.category?.name || '',
+          category_id: product.category?.id,
+          brand: product.brand?.name || '',
+          brand_id: product.brand?.id,
+          price: parseFloat(product.old_price) || parseFloat(product.price) || 0,
+          offerPrice: parseFloat(product.price) || 0,
+          old_price: parseFloat(product.old_price) || 0,
+          avg_rating: product.avg_rating || 0,
+          isNew: product.is_new || false,
+          isHot: product.is_featured || false,
+          is_featured: product.is_featured || false,
+          stock: product.stock || 0,
+          thumbnail: product.thumbnail,
+          image: product.images?.length > 0 
+            ? product.images.map(img => img.url) 
+            : (product.thumbnail ? [product.thumbnail] : ['/images/placeholder.png']),
+          images: product.images || [],
+          specs: product.specs || [],
+          view_count: product.view_count || 0,
+        }));
+        
+        setProducts(normalizedProducts);
+        return { success: true, data: normalizedProducts, pagination: data };
+      } else {
+        console.error('Failed to fetch products:', res.status);
+        return { success: false, error: 'Failed to fetch products' };
+      }
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      return { success: false, error: error.message };
+    } finally {
+      setLoading(false);
+    }
   };
 
   // --- MỚI THÊM: HÀM XỬ LÝ ĐĂNG NHẬP ---
-  // Địa chỉ API backend
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
 
   // Đăng nhập
   const login = async (email, password) => {
@@ -251,6 +318,7 @@ export const AppContextProvider = (props) => {
     register,
     logout,
     products,
+    loading,
     fetchProductData,
     cartItems,
     setCartItems,
@@ -258,6 +326,7 @@ export const AppContextProvider = (props) => {
     updateCartQuantity,
     getCartCount,
     getCartAmount,
+    API_URL,
   };
 
   return <AppContext.Provider value={value}>{props.children}</AppContext.Provider>;
