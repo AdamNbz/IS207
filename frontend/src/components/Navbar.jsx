@@ -88,7 +88,7 @@ const Navbar = () => {
     <nav className="flex items-center justify-between px-6 md:px-16 lg:px-32 py-3 border-b border-gray-300 text-gray-700 fixed top-0 left-0 w-full z-50 bg-white">
       {/* Logo */}
       <Image
-        className="cursor-pointer w-12 md:w-12"
+        className="cursor-pointer w-12 md:w-12 rounded-lg"
         onClick={() => router.push("/")}
         src="/images/logo.jpg"
         alt="logo"

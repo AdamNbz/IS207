@@ -33,7 +33,7 @@ class OrderController extends Controller
                       ->where('id', $id)
                       // Load mối quan hệ 'details' (trong Model Order) 
                       // và từ details load tiếp 'product' (trong Model OrderDetail)
-                      ->with('details.product') 
+                      ->with('orderDetails.product') 
                       ->first();
 
         if (!$order) {
