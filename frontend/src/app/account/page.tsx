@@ -541,7 +541,7 @@ const AccountPage = () => {
                   <div className="space-y-4">
                     <h4 className="font-medium text-gray-800">Sản phẩm</h4>
                       {/* @ts-ignore */}
-                    {selectedOrder.details?.map((item, index) => (
+                    {selectedOrder.orderDetails?.map((item, index) => (
                       <div key={index} className="flex gap-4">
                         <div className="w-16 h-16 bg-gray-100 rounded border relative flex-shrink-0 flex items-center justify-center overflow-hidden">
                            {/* Dùng thẻ img thường để tránh lỗi nếu chưa config domain ảnh trong next.config.js */}
