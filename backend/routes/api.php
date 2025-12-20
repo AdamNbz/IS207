@@ -17,6 +17,9 @@ use App\Http\Controllers\Api\Admin\AdminOrderController;
 use App\Http\Controllers\Api\Admin\AdminPromotionController;
 use App\Http\Controllers\Api\UserPromotionController;
 use App\Http\Controllers\Api\Admin\StatsController;
+use App\Http\Controllers\Api\Admin\UserController;
+
+use App\Http\Controllers\Api\ChatController;
 
 Route::get('/get-token-admin', function () {
     // 1. Tìm user tên là 'admin shop'
@@ -96,6 +99,9 @@ Route::get('/categories', [CategoryController::class, 'index']);
 Route::get('/brands', [BrandController::class, 'index']);
 Route::get('/promotions/{id}/products', [UserPromotionController::class, 'getProducts']);
 
+// Chatbot
+Route::post('/chat', [ChatController::class, 'sendMessage']);
+
 // --- PRIVATE ROUTES ---
 Route::middleware('auth:sanctum')->group(function () {
     // Auth
@@ -143,5 +149,25 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/users/{id}/lock', [\App\Http\Controllers\Api\Admin\UserController::class, 'lock']);
         Route::put('/users/{id}/promote', [\App\Http\Controllers\Api\Admin\UserController::class, 'promote']);
         Route::put('/users/{id}/revoke', [\App\Http\Controllers\Api\Admin\UserController::class, 'revoke']);
+    });
+
+    Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
+        // Quản lý User
+        Route::get('/users', [UserController::class, 'index']);
+        Route::post('/users/{id}/lock', [UserController::class, 'lock']);
+        Route::post('/users/{id}/promote', [UserController::class, 'promote']);
+        Route::post('/users/{id}/revoke', [UserController::class, 'revoke']);
+    });
+
+    // use Illuminate\Support\Facades\Http;
+
+    Route::get('/test-models', function () {
+        $apiKey = env('GEMINI_API_KEY');
+        
+        // Gọi API lấy danh sách Model
+        $response = Http::withoutVerifying()
+            ->get("https://generativelanguage.googleapis.com/v1beta/models?key={$apiKey}");
+
+        return $response->json();
     });
 });

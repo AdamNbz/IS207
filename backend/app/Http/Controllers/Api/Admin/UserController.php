@@ -16,15 +16,27 @@ class UserController extends Controller
         }
     }
 
-    public function index()
+public function index()
     {
-        $this->ensureAdmin();
+        try {
+            // Lấy User kèm theo:
+            // 1. orders: danh sách đơn hàng
+            // 2. orders.orderDetails.product: chi tiết đơn -> thông tin sản phẩm
+            // 3. addresses: địa chỉ
+            $users = User::with(['orders.orderDetails.product', 'addresses'])
+                        ->latest() // Người mới nhất lên đầu
+                        ->get();
 
-        $users = User::where('role', 'customer')
-            ->with(['addresses', 'orders.details.product', 'cart.items.product', 'reviews'])
-            ->get();
+            // QUAN TRỌNG: Phải trả về dạng 'data' => $users để khớp với frontend
+            return response()->json([
+                'status' => 'success',
+                'data' => $users
+            ], 200);
 
-        return response()->json(['data' => $users]);
+        } catch (\Exception $e) {
+            // Nếu lỗi, trả về 500 để frontend biết
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 
     public function lock($id)

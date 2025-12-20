@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import OrderManagement from "@/components/admin/OrderManagement";
+import UserManagement from "@/components/admin/UserManagement";
 
 // Single-file Admin UI for Next.js (app/admin/page.tsx)
 // - TailwindCSS required in project
@@ -411,22 +412,22 @@ export default function AdminPage() {
       {/* Sidebar */}
       <aside className="w-72 bg-white border-r hidden md:flex flex-col">
         <div className="px-6 py-5 border-b">
-          <h1 className="text-2xl font-bold">LaptopStore Admin</h1>
+          <h1 className="text-2xl font-bold">ALT+F4 Store Admin</h1>
           <p className="text-sm text-gray-500">Quản trị cửa hàng</p>
         </div>
 
         <nav className="flex-1 px-2 py-4 space-y-1">
           <SideItem active={view === "dashboard"} onClick={() => setView("dashboard")}>
-            Dashboard
+            Thống kê kinh doanh
           </SideItem>
           <SideItem active={view === "products"} onClick={() => setView("products")}>
             Quản lý sản phẩm
           </SideItem>
           <SideItem active={view === "orders"} onClick={() => setView("orders")}>
-            Đơn hàng
+            Quản lý Đơn hàng
           </SideItem>
           <SideItem active={view === "users"} onClick={() => setView("users")}>
-            Người dùng
+            Quản lý Người dùng
           </SideItem>
           <div className="mt-4 px-3">
             <button
@@ -458,7 +459,7 @@ export default function AdminPage() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-2xl font-semibold capitalize">{view}</h2>
-            <p className="text-sm text-gray-500">Xin chào, Admin — quản lý cửa hàng laptop</p>
+            <p className="text-sm text-gray-500"></p>
           </div>
 
           <div className="flex items-center gap-3">
@@ -568,7 +569,7 @@ export default function AdminPage() {
 
         {view === "orders" && <OrderManagement />}
 
-        {view === "users" && <div className="bg-white p-6 rounded-lg shadow">Người dùng — (demo) chưa kết nối backend</div>}
+        {view === "users" && <UserManagement/>}
       </main>
 
       {/* Slide-over form */}

@@ -47,8 +47,8 @@ class AdminOrderController extends Controller
     {
         // Lấy đơn hàng kèm theo:
         // - user: để biết ai mua
-        // - details.product: để biết mua cái gì, tên sp, ảnh sp
-        $order = Order::with(['user', 'details.product'])->find($id);
+        // - orderDetails.product: để biết mua cái gì, tên sp, ảnh sp
+        $order = Order::with(['user', 'orderDetails.product'])->find($id);
 
         if (!$order) {
             return response()->json(['message' => 'Không tìm thấy đơn hàng'], 404);

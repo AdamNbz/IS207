@@ -49,9 +49,9 @@ const Home = () => {
           }}
         />
 
-        <FeaturedProduct />
+        {/* <FeaturedProduct />
         <Banner />
-        <NewsLetter />
+        <NewsLetter /> */}
       </div>
       <Footer />
     </>
