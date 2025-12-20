@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AppContextProvider } from "@/context/AppContext";
+import ChatBot from '@/components/ChatBot'; // 1. Bạn đã import ở đây
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,7 +27,14 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`} suppressHydrationWarning>
-        <AppContextProvider>{children}</AppContextProvider>
+        <AppContextProvider>
+          {/* Nội dung chính của trang web */}
+          {children}
+
+          {/* 2. Thêm ChatBot vào đây (nằm đè lên trên nội dung nhờ CSS fixed) */}
+          <ChatBot />
+          
+        </AppContextProvider>
       </body>
     </html>
   );

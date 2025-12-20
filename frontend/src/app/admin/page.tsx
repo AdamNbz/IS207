@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import OrderManagement from "@/components/admin/OrderManagement";
+import UserManagement from "@/components/admin/UserManagement";
 
 // Single-file Admin UI for Next.js (app/admin/page.tsx)
 // - TailwindCSS required in project
@@ -562,9 +564,9 @@ export default function AdminPage() {
           </div>
         )}
 
-        {view === "orders" && <div className="bg-white p-6 rounded-lg shadow">Đơn hàng — (demo) chưa kết nối backend</div>}
+        {view === "orders" && <OrderManagement/>}
 
-        {view === "users" && <div className="bg-white p-6 rounded-lg shadow">Người dùng — (demo) chưa kết nối backend</div>}
+        {view === "users" && <UserManagement/>}
       </main>
 
       {/* Slide-over form */}

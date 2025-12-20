@@ -12,7 +12,7 @@ class Order extends Model
         return $this->belongsTo(User::class); // Có thể null
     }
 
-    public function details() {
+    public function orderDetails() {
         return $this->hasMany(OrderDetail::class);
     }
 }
