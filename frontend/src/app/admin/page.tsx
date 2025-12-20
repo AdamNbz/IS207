@@ -7,7 +7,27 @@ import OrderManagement from "@/components/admin/OrderManagement";
 // Single-file Admin UI for Next.js (app/admin/page.tsx)
 // - TailwindCSS required in project
 // - Put this file at: src/app/admin/page.tsx
+interface DashboardStats {
+  total_customers: number;
+  total_products: number;
+  total_orders: number;
+  total_revenue: number;
+}
 
+interface TopProduct {
+  product_id: number;
+  name: string;
+  price: number;
+  thumbnail?: string;
+  sold_count: number;
+}
+
+interface LowStockProduct {
+  id: number;
+  name: string;
+  stock: number;
+  thumbnail?: string;
+}
 type Product = {
   id: string;
   name: string;
@@ -26,7 +46,7 @@ type Product = {
   specs?: Array<{ id?: number; name: string; value: string }>;
 };
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8001/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
 
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -443,7 +463,7 @@ export default function AdminPage() {
 
           <div className="flex items-center gap-3">
             <div className="hidden sm:flex items-center border rounded-lg overflow-hidden">
-              <input value={query} onChange={(e) => setQuery(e.target.value)} className="px-3 py-2 outline-none" placeholder="Tìm sản phẩm hoặc thương hiệu..." />
+              <input value={query} onChange={(e) => setQuery(e.target.value)} className="px-3 py-2 outline-none w-72" placeholder="Tìm sản phẩm hoặc thương hiệu..." />
               <button onClick={() => setQuery("")} className="px-3 bg-gray-50">
                 Xoá
               </button>

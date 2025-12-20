@@ -105,7 +105,7 @@ class ProductController extends Controller
             $query->latest(); // mặc định theo created_at desc
         }
 
-        $perPage = (int) $request->get('per_page', 12);
+        $perPage = (int) $request->get('per_page', 100);
         $paginator = $query->paginate($perPage);
 
         // Tuỳ biến dữ liệu trả về (có thể thu gọn) - ví dụ map thêm avg_rating
