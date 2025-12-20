@@ -231,7 +231,7 @@ export default function OrderManagement() {
       {/* ===== HEADER ===== */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-800">📦 Quản lý Đơn hàng</h2>
+          <h2 className="text-2xl font-bold text-gray-800">Quản lý Đơn hàng</h2>
           <p className="text-gray-500">Tổng cộng: {total} đơn hàng</p>
         </div>
         <button
@@ -414,7 +414,7 @@ export default function OrderManagement() {
           <div className="bg-white rounded-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
             {/* Header Modal */}
             <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
-              <h3 className="text-xl font-bold">📋 Chi tiết đơn hàng #{selectedOrder.id}</h3>
+              <h3 className="text-xl font-bold">Chi tiết đơn hàng #{selectedOrder.id}</h3>
               <button
                 onClick={() => {
                   setShowDetail(false);
@@ -431,13 +431,13 @@ export default function OrderManagement() {
               {/* Thông tin khách hàng */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="bg-gray-50 p-4 rounded-lg">
-                  <h4 className="font-semibold mb-2">👤 Thông tin khách hàng</h4>
+                  <h4 className="font-semibold mb-2">Thông tin khách hàng</h4>
                   <p><strong>Tên:</strong> {selectedOrder.customer_name}</p>
                   <p><strong>SĐT:</strong> {selectedOrder.customer_phone}</p>
                   <p><strong>Email:</strong> {selectedOrder.user?.email || "Khách vãng lai"}</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
-                  <h4 className="font-semibold mb-2">📍 Địa chỉ giao hàng</h4>
+                  <h4 className="font-semibold mb-2">Địa chỉ giao hàng</h4>
                   <p>{selectedOrder.shipping_address}</p>
                   <p>{selectedOrder.city}</p>
                   {selectedOrder.note && (
@@ -450,7 +450,7 @@ export default function OrderManagement() {
 
               {/* Danh sách sản phẩm */}
               <div>
-                <h4 className="font-semibold mb-3">🛒 Sản phẩm đã đặt</h4>
+                <h4 className="font-semibold mb-3">Sản phẩm đã đặt</h4>
                 <div className="border rounded-lg overflow-hidden">
                   <table className="min-w-full">
                     <thead className="bg-gray-50">
@@ -514,7 +514,7 @@ export default function OrderManagement() {
 
               {/* Cập nhật trạng thái */}
               <div>
-                <h4 className="font-semibold mb-3">🔄 Cập nhật trạng thái</h4>
+                <h4 className="font-semibold mb-3">Cập nhật trạng thái</h4>
                 <div className="flex flex-wrap gap-2">
                   {(Object.keys(ORDER_STATUS_CONFIG) as OrderStatus[]).map((status) => {
                     const config = ORDER_STATUS_CONFIG[status];

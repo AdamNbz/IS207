@@ -73,7 +73,7 @@ export default function ChatBot() {
                 <Bot size={20} />
               </div>
               <div>
-                <h3 className="font-bold text-sm">Trợ lý ảo LaptopStore</h3>
+                <h3 className="font-bold text-sm">Trợ lý ảo ALT+F4 Store</h3>
                 <p className="text-xs text-blue-100 flex items-center gap-1">
                   <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span> Online
                 </p>
